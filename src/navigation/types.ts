@@ -1,0 +1,6 @@
+export type RootStackParamList = {
+  Home: undefined;
+  TableOfContents: undefined;
+  Vigil: { startIndex: number };
+  Settings: undefined;
+};

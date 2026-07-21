@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "ComRep Vigil",
+    "slug": "comrep-vigil",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.twohearts.comrepvigil"
+    },
+    "android": {
+      "package": "org.twohearts.comrepvigil",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Cinzel-Regular.ttf",
+            "./assets/fonts/Cinzel-SemiBold.ttf",
+            "./assets/fonts/Cinzel-Bold.ttf",
+            "./assets/fonts/LinuxLibertine-Regular.ttf",
+            "./assets/fonts/LinuxLibertine-Semibold.ttf",
+            "./assets/fonts/LinuxLibertine-Bold.ttf",
+            "./assets/fonts/LinuxLibertine-Italic.ttf",
+            "./assets/fonts/LinuxLibertine-SemiboldItalic.ttf"
+          ]
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+// Content model for the Communion of Reparation All Night Vigil Prayer Guide.
+// The booklet is represented as an ordered list of Parts, each containing
+// Sections, each containing Blocks. The guided walkthrough steps through
+// Sections one screen at a time; a Section's Blocks render together.
+
+export type Posture = 'stand' | 'kneel' | 'sit';
+
+export type Speaker = 'L' | 'R' | 'A' | 'Presider' | 'Side 1' | 'Side 2' | 'Lector';
+
+export interface DialogueLine {
+  speaker: Speaker;
+  text: string;
+}
+
+export type ContentBlock =
+  /** Bold all-caps sub-label within a section, e.g. "SPIRITUAL DISPOSITION" */
+  | { type: 'label'; text: string }
+  /** Italic stage direction, e.g. "Please all kneel" */
+  | { type: 'rubric'; text: string; posture?: Posture }
+  /** Plain prose paragraph */
+  | { type: 'paragraph'; text: string }
+  /** Placeholder indicating a hymn is sung here (no fixed lyrics in the guide) */
+  | { type: 'hymnCue' }
+  /** A hymn/prayer with parallel Latin and English text */
+  | { type: 'bilingual'; latin: string[]; english: string[] }
+  /** Leader/response or multi-speaker dialogue prayer */
+  | { type: 'dialogue'; lines: DialogueLine[] }
+  /** A longer spoken prayer, broken into phrases for pacing */
+  | { type: 'prayer'; speaker?: Speaker; phrases: string[] }
+  /** Scripture reading */
+  | {
+      type: 'reading';
+      citation: string;
+      introduction: string;
+      phrases: string[];
+      closing?: { leader: string; response: string };
+    }
+  /** Simple bullet or numbered list */
+  | { type: 'list'; items: string[]; ordered?: boolean }
+  /** Editorial / practical note, rendered distinctly from rubrics */
+  | { type: 'note'; text: string }
+  /** Small-print acknowledgement/citation line. If linkText is a substring of
+   * text, that substring renders italic + blue (matching the source PDF's
+   * hyperlink styling), the rest renders as plain small print. */
+  | { type: 'credit'; text: string; linkText?: string };
+
+export interface VigilSection {
+  id: string;
+  /** Small overline label, e.g. "First Office" */
+  kicker?: string;
+  title: string;
+  /** Render the title at a smaller size — for reference-style pages
+   * (e.g. Acknowledgements) that don't need a full devotional heading. */
+  smallTitle?: boolean;
+  /** Epigraph scripture quote shown under the title */
+  epigraph?: { text: string; citation: string };
+  blocks: ContentBlock[];
+}
+
+export interface VigilPart {
+  id: string;
+  title: string;
+  /** Shown in the table of contents / progress indicator */
+  shortTitle?: string;
+  sections: VigilSection[];
+}
