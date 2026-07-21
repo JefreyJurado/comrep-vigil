@@ -47,3 +47,9 @@ yarn-error.*
 # local Claude Code tooling config
 /.claude
 
+# release signing keystore + passwords — NEVER commit, back up separately
+/keystore
+
+# built release artifacts (.aab/.apk) — large binaries, don't belong in git
+/releases
+

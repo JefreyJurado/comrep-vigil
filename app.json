@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "org.twohearts.comrepvigil",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -46,7 +47,8 @@
             "./assets/fonts/LinuxLibertine-SemiboldItalic.ttf"
           ]
         }
-      ]
+      ],
+      "./plugins/withReleaseSigning.js"
     ]
   }
 }
