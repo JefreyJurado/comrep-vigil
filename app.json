@@ -48,6 +48,7 @@
           ]
         }
       ],
+      "expo-notifications",
       "./plugins/withReleaseSigning.js"
     ]
   }

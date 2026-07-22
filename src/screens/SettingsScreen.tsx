@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, fonts, radii, spacing } from '../theme/theme';
 import { clearProgress } from '../utils/progress';
 import { loadKeepScreenAwake, saveKeepScreenAwake } from '../utils/settings';
+import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
 import { findStepIndex } from '../content';
 import appConfig from '../../app.json';
 
@@ -14,12 +15,16 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
   const [keepAwake, setKeepAwake] = useState(false);
+  const [reminder, setReminder] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       loadKeepScreenAwake().then((value) => {
         if (active) setKeepAwake(value);
+      });
+      loadReminderEnabled().then((value) => {
+        if (active) setReminder(value);
       });
       return () => {
         active = false;
@@ -30,6 +35,26 @@ export function SettingsScreen({ navigation }: Props) {
   const onToggleKeepAwake = (value: boolean) => {
     setKeepAwake(value);
     saveKeepScreenAwake(value);
+  };
+
+  const onToggleReminder = async (value: boolean) => {
+    if (value) {
+      const granted = await enableVigilReminder();
+      setReminder(granted);
+      if (!granted) {
+        Alert.alert(
+          'Notifications Disabled',
+          'ComRep Vigil needs notification permission to remind you before each First Friday vigil. You can enable it in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    } else {
+      setReminder(false);
+      await disableVigilReminder();
+    }
   };
 
   const onResetProgress = () => {
@@ -69,6 +94,23 @@ export function SettingsScreen({ navigation }: Props) {
               onValueChange={onToggleKeepAwake}
               trackColor={{ false: colors.border, true: colors.accentMuted }}
               thumbColor={keepAwake ? colors.accent : '#fff'}
+            />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowLabel}>Vigil Reminder</Text>
+              <Text style={styles.rowHint}>
+                A reminder the evening before every First Friday, when the vigil begins.
+              </Text>
+            </View>
+            <Switch
+              value={reminder}
+              onValueChange={onToggleReminder}
+              trackColor={{ false: colors.border, true: colors.accentMuted }}
+              thumbColor={reminder ? colors.accent : '#fff'}
             />
           </View>
         </View>

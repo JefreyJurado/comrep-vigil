@@ -363,9 +363,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bilingualLine: {
+    // Kept smaller than the app's usual body copy so long English lines are
+    // less likely to wrap and drift out of row-alignment with their shorter
+    // Latin counterpart in the column beside them.
     fontFamily: fonts.body,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 21,
     color: colors.text,
   },
   latin: {
