@@ -1,9 +1,11 @@
 # Play Store Listing Copy — ComRep Vigil
 
 ## App name (30 char max)
+
 ComRep Vigil
 
 ## Short description (80 char max)
+
 Guided prayer companion for the Communion of Reparation All Night Vigil
 
 ## Full description (4000 char max)
