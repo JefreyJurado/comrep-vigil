@@ -438,9 +438,10 @@ const styles = StyleSheet.create({
   },
   listBullet: {
     fontFamily: fonts.bodyBold,
-    fontSize: 19,
+    fontSize: 21,
+    lineHeight: 30,
     color: colors.gold,
-    width: 26,
+    width: 34,
   },
   listItemText: {
     flex: 1,
