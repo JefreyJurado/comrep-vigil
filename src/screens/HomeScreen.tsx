@@ -24,9 +24,9 @@ export function HomeScreen({ navigation }: Props) {
     useCallback(() => {
       let active = true;
       loadProgress().then((index) => {
-        if (active && index !== null && index > 0 && index < flatSteps.length - 1) {
-          setResumeIndex(index);
-        }
+        if (!active) return;
+        const isResumable = index !== null && index > 0 && index < flatSteps.length - 1;
+        setResumeIndex(isResumable ? index : null);
       });
       return () => {
         active = false;
@@ -65,7 +65,9 @@ export function HomeScreen({ navigation }: Props) {
             >
               <Text style={styles.primaryButtonText}>Continue Vigil</Text>
               <Text style={styles.buttonSubtext}>
-                {flatSteps[resumeIndex].section.title} · {flatSteps[resumeIndex].partTitle}
+                {flatSteps[resumeIndex].section.title === flatSteps[resumeIndex].partTitle
+                  ? flatSteps[resumeIndex].partTitle
+                  : `${flatSteps[resumeIndex].section.title} · ${flatSteps[resumeIndex].partTitle}`}
               </Text>
             </Pressable>
           )}
