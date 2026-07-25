@@ -82,6 +82,25 @@ export const sevenSorrowsPart: VigilPart = {
           type: 'note',
           text: 'At the end of the Seven Sorrows, pray: Our Father... Seven Hail Marys... Glory to the Father...',
         },
+        { type: 'label', text: 'A Prayer of Thanksgiving' },
+        {
+          type: 'prayer',
+          speaker: 'A',
+          phrases: [
+            'We thank You, Lord Jesus, for the grace of this hour kept in watching, in reparation, and in love before Your Eucharistic Heart.',
+            'We thank you, Immaculate Heart of Mary, for your motherly presence beside us through this night of prayer.',
+            'May the fire lit here not go out, but remain quietly burning in our hearts until we keep watch with You again.',
+          ],
+        },
+        {
+          type: 'dialogue',
+          lines: [
+            { speaker: 'L', text: 'Most Sacred Heart of Jesus,' },
+            { speaker: 'R', text: 'Have mercy on us.' },
+            { speaker: 'L', text: 'Immaculate Heart of Mary,' },
+            { speaker: 'R', text: 'Pray for us.' },
+          ],
+        },
       ],
     },
   ],

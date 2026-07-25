@@ -3,4 +3,5 @@ export type RootStackParamList = {
   TableOfContents: undefined;
   Vigil: { startIndex: number };
   Settings: undefined;
+  Hymn: undefined;
 };

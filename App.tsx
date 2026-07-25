@@ -3,13 +3,16 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import type { RootStackParamList } from './src/navigation/types';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { TableOfContentsScreen } from './src/screens/TableOfContentsScreen';
 import { VigilScreen } from './src/screens/VigilScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
-import { colors, fonts } from './src/theme/theme';
+import { HymnScreen } from './src/screens/HymnScreen';
+import { fonts } from './src/theme/theme';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { refreshVigilReminderIfNeeded } from './src/utils/reminders';
 
 Notifications.setNotificationHandler({
@@ -23,33 +26,61 @@ Notifications.setNotificationHandler({
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+function AppNavigator() {
+  const { colors, mode } = useTheme();
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.accent,
+          headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 17 },
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="TableOfContents"
+          component={TableOfContentsScreen}
+          options={{ title: 'Contents' }}
+        />
+        <Stack.Screen name="Vigil" component={VigilScreen} options={{ title: 'Vigil' }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+        <Stack.Screen name="Hymn" component={HymnScreen} options={{ title: 'Hymn' }} />
+      </Stack.Navigator>
+      <StatusBar style={mode === 'night' ? 'light' : 'dark'} />
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
+  // The expo-font config plugin (app.json) embeds these natively for iOS/Android
+  // builds, where text can reference the family names directly with no loading
+  // gap. The web target has no such native embedding step, so useFonts here
+  // fills that gap — same family names, so native behavior is unaffected.
+  const [fontsLoaded] = useFonts({
+    'Cinzel-Bold': require('./assets/fonts/Cinzel-Bold.ttf'),
+    'Cinzel-SemiBold': require('./assets/fonts/Cinzel-SemiBold.ttf'),
+    'Cinzel-Regular': require('./assets/fonts/Cinzel-Regular.ttf'),
+    'LinuxLibertine-Regular': require('./assets/fonts/LinuxLibertine-Regular.ttf'),
+    'LinuxLibertine-Semibold': require('./assets/fonts/LinuxLibertine-Semibold.ttf'),
+    'LinuxLibertine-Bold': require('./assets/fonts/LinuxLibertine-Bold.ttf'),
+    'LinuxLibertine-Italic': require('./assets/fonts/LinuxLibertine-Italic.ttf'),
+    'LinuxLibertine-SemiboldItalic': require('./assets/fonts/LinuxLibertine-SemiboldItalic.ttf'),
+  });
+
   useEffect(() => {
     refreshVigilReminderIfNeeded();
   }, []);
 
+  if (!fontsLoaded) return null;
+
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.background },
-            headerTintColor: colors.accent,
-            headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 17 },
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen
-            name="TableOfContents"
-            component={TableOfContentsScreen}
-            options={{ title: 'Table of Contents' }}
-          />
-          <Stack.Screen name="Vigil" component={VigilScreen} options={{ title: 'Vigil' }} />
-          <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
-        </Stack.Navigator>
-        <StatusBar style="dark" />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <AppNavigator />
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

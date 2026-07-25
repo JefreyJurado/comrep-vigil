@@ -1,12 +1,22 @@
-import { useCallback, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, fonts, radii, spacing } from '../theme/theme';
+import { ThemedSwitch } from '../components/ThemedSwitch';
+import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { clearProgress } from '../utils/progress';
-import { loadKeepScreenAwake, saveKeepScreenAwake } from '../utils/settings';
+import {
+  loadKeepScreenAwake,
+  saveKeepScreenAwake,
+  loadTextSize,
+  saveTextSize,
+  TEXT_SIZE_ORDER,
+  TEXT_SIZE_LABELS,
+  type TextSize,
+} from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
 import { findStepIndex } from '../content';
 import appConfig from '../../app.json';
@@ -14,8 +24,11 @@ import appConfig from '../../app.json';
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
+  const { colors, mode, setMode } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [keepAwake, setKeepAwake] = useState(false);
   const [reminder, setReminder] = useState(false);
+  const [textSize, setTextSize] = useState<TextSize>('medium');
 
   useFocusEffect(
     useCallback(() => {
@@ -26,15 +39,27 @@ export function SettingsScreen({ navigation }: Props) {
       loadReminderEnabled().then((value) => {
         if (active) setReminder(value);
       });
+      loadTextSize().then((value) => {
+        if (active) setTextSize(value);
+      });
       return () => {
         active = false;
       };
     }, [])
   );
 
+  const onSelectTextSize = (size: TextSize) => {
+    setTextSize(size);
+    saveTextSize(size);
+  };
+
   const onToggleKeepAwake = (value: boolean) => {
     setKeepAwake(value);
     saveKeepScreenAwake(value);
+  };
+
+  const onToggleNightMode = (value: boolean) => {
+    setMode(value ? 'night' : 'light');
   };
 
   const onToggleReminder = async (value: boolean) => {
@@ -89,12 +114,38 @@ export function SettingsScreen({ navigation }: Props) {
               <Text style={styles.rowLabel}>Keep Screen Awake</Text>
               <Text style={styles.rowHint}>Prevents the screen from locking while you pray through the vigil.</Text>
             </View>
-            <Switch
-              value={keepAwake}
-              onValueChange={onToggleKeepAwake}
-              trackColor={{ false: colors.border, true: colors.accentMuted }}
-              thumbColor={keepAwake ? colors.accent : '#fff'}
-            />
+            <ThemedSwitch value={keepAwake} onValueChange={onToggleKeepAwake} colors={colors} />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowLabel}>Night Mode</Text>
+              <Text style={styles.rowHint}>A dimmer palette for praying in a dark chapel or bedroom.</Text>
+            </View>
+            <ThemedSwitch value={mode === 'night'} onValueChange={onToggleNightMode} colors={colors} />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.rowLabel}>Text Size</Text>
+          <Text style={styles.rowHint}>Adjusts the size of the prayer text while you pray through the vigil.</Text>
+          <View style={styles.textSizeRow}>
+            {TEXT_SIZE_ORDER.map((size) => {
+              const selected = size === textSize;
+              return (
+                <Pressable
+                  key={size}
+                  style={[styles.textSizePill, selected && styles.textSizePillSelected]}
+                  onPress={() => onSelectTextSize(size)}
+                >
+                  <Text style={[styles.textSizePillText, selected && styles.textSizePillTextSelected]}>
+                    {TEXT_SIZE_LABELS[size]}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -106,12 +157,7 @@ export function SettingsScreen({ navigation }: Props) {
                 A reminder the evening before every First Friday, when the vigil begins.
               </Text>
             </View>
-            <Switch
-              value={reminder}
-              onValueChange={onToggleReminder}
-              trackColor={{ false: colors.border, true: colors.accentMuted }}
-              thumbColor={reminder ? colors.accent : '#fff'}
-            />
+            <ThemedSwitch value={reminder} onValueChange={onToggleReminder} colors={colors} />
           </View>
         </View>
 
@@ -135,51 +181,79 @@ export function SettingsScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  sectionTitle: {
-    fontFamily: fonts.displaySemiBold,
-    fontSize: 15,
-    letterSpacing: 1.4,
-    color: colors.gold,
-    marginTop: spacing.md,
-    marginBottom: spacing.xs,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  pressableRow: {
-    gap: 2,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
-  },
-  rowLabel: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 19,
-    color: colors.text,
-  },
-  rowHint: {
-    fontFamily: fonts.italic,
-    fontSize: 15,
-    color: colors.textMuted,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    sectionTitle: {
+      fontFamily: fonts.displaySemiBold,
+      fontSize: 15,
+      letterSpacing: 1.4,
+      color: colors.gold,
+      marginTop: spacing.md,
+      marginBottom: spacing.xs,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+    },
+    pressableRow: {
+      gap: 2,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    rowText: {
+      flex: 1,
+      gap: 2,
+    },
+    rowLabel: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 19,
+      color: colors.text,
+    },
+    rowHint: {
+      fontFamily: fonts.italic,
+      fontSize: 15,
+      color: colors.textMuted,
+    },
+    textSizeRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    textSizePill: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    textSizePillSelected: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    textSizePillText: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 15,
+      color: colors.text,
+    },
+    textSizePillTextSelected: {
+      color: colors.onAccent,
+    },
+  });
+}

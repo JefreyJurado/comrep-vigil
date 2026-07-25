@@ -1,12 +1,20 @@
-import { StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ContentBlock, DialogueLine, VigilSection } from '../types/content';
-import { colors, fonts, radii, spacing } from '../theme/theme';
+import type { RootStackParamList } from '../navigation/types';
+import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 // Missal convention: the congregation's response is set in bold so it's easy
-// to pick out at a glance. Leader/reader prompts (L, Presider, Lector) stay
-// regular weight; Side 1 / Side 2 alternate the same responsive role in the
-// psalms, so they're bolded too.
-const BOLD_TEXT_SPEAKERS = new Set(['R', 'Side 1', 'Side 2']);
+// to pick out at a glance. Everyone else — leader/reader prompts (L,
+// Presider, Lector) and alternating psalm-verse speakers (Side 1 / Side 2,
+// which read plain verses, not a response) — stays regular weight.
+const BOLD_TEXT_SPEAKERS = new Set(['R']);
+
+type Styles = ReturnType<typeof createStyles>;
 
 interface QuoteSegment {
   text: string;
@@ -59,7 +67,7 @@ function segmentQuotesAcrossPhrases(phrases: string[]): QuoteSegment[][] {
   });
 }
 
-function renderSegments(segments: QuoteSegment[], quoteStyle: StyleProp<TextStyle> = styles.inlineQuote) {
+function renderSegments(segments: QuoteSegment[], quoteStyle: StyleProp<TextStyle>) {
   if (segments.length <= 1 && !segments[0]?.quoted) {
     return segments[0]?.text ?? '';
   }
@@ -82,7 +90,7 @@ function QuoteAwareText({
 }: {
   text: string;
   style: StyleProp<TextStyle>;
-  quoteStyle?: StyleProp<TextStyle>;
+  quoteStyle: StyleProp<TextStyle>;
 }) {
   const [segments] = segmentQuotesAcrossPhrases([text]);
   return <Text style={style}>{renderSegments(segments, quoteStyle)}</Text>;
@@ -96,7 +104,7 @@ function QuoteAwarePhrases({
 }: {
   phrases: string[];
   style: StyleProp<TextStyle>;
-  quoteStyle?: StyleProp<TextStyle>;
+  quoteStyle: StyleProp<TextStyle>;
 }) {
   const segmented = segmentQuotesAcrossPhrases(phrases);
   return (
@@ -110,19 +118,22 @@ function QuoteAwarePhrases({
   );
 }
 
-function DialogueLineText({ line, keyId }: { line: DialogueLine; keyId: string | number }) {
+function DialogueLineText({ line, keyId, styles }: { line: DialogueLine; keyId: string | number; styles: Styles }) {
   const boldText = BOLD_TEXT_SPEAKERS.has(line.speaker);
   const lineStyle = boldText ? styles.dialogueLineBold : styles.dialogueLine;
   const [segments] = segmentQuotesAcrossPhrases([line.text]);
   return (
-    <Text key={keyId} style={lineStyle}>
-      <Text style={styles.dialogueSpeaker}>{line.speaker}: </Text>
-      {renderSegments(segments)}
-    </Text>
+    <View key={keyId}>
+      {line.latin ? <Text style={styles.dialogueLatinLine}>{line.latin}</Text> : null}
+      <Text style={lineStyle}>
+        <Text style={styles.dialogueSpeaker}>{line.speaker}: </Text>
+        {renderSegments(segments, styles.inlineQuote)}
+      </Text>
+    </View>
   );
 }
 
-function CreditText({ text, linkText }: { text: string; linkText?: string }) {
+function CreditText({ text, linkText, styles }: { text: string; linkText?: string; styles: Styles }) {
   if (linkText && text.includes(linkText)) {
     const idx = text.indexOf(linkText);
     const before = text.slice(0, idx);
@@ -138,7 +149,26 @@ function CreditText({ text, linkText }: { text: string; linkText?: string }) {
   return <Text style={styles.creditText}>{text}</Text>;
 }
 
-function Block({ block }: { block: ContentBlock }) {
+function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors }) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  return (
+    <View style={styles.hymnCueWrap}>
+      <Pressable
+        style={styles.hymnCue}
+        onPress={() => navigation.navigate('Hymn')}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Hymn. Tap to view lyrics."
+      >
+        <Ionicons name="musical-notes-outline" size={15} color={colors.textMuted} />
+        <Text style={styles.hymnCueText}>Hymn</Text>
+      </Pressable>
+      <Text style={styles.hymnCueHint}>Tap “Hymn” to view the lyrics.</Text>
+    </View>
+  );
+}
+
+function Block({ block, styles, colors }: { block: ContentBlock; styles: Styles; colors: ThemeColors }) {
   switch (block.type) {
     case 'label':
       return (
@@ -153,14 +183,10 @@ function Block({ block }: { block: ContentBlock }) {
       return <Text style={styles.rubric}>{block.text}</Text>;
 
     case 'paragraph':
-      return <QuoteAwareText text={block.text} style={styles.paragraph} />;
+      return <QuoteAwareText text={block.text} style={styles.paragraph} quoteStyle={styles.inlineQuote} />;
 
     case 'hymnCue':
-      return (
-        <View style={styles.hymnCue}>
-          <Text style={styles.hymnCueText}>♪ Hymn</Text>
-        </View>
-      );
+      return <HymnCueBlock styles={styles} colors={colors} />;
 
     case 'bilingual':
       return (
@@ -186,7 +212,7 @@ function Block({ block }: { block: ContentBlock }) {
       return (
         <View style={styles.dialogueBlock}>
           {block.lines.map((line, i) => (
-            <DialogueLineText key={i} keyId={i} line={line} />
+            <DialogueLineText key={i} keyId={i} line={line} styles={styles} />
           ))}
         </View>
       );
@@ -200,12 +226,16 @@ function Block({ block }: { block: ContentBlock }) {
             // rendered like a rubric — italic, centered — instead of blending
             // into the surrounding prayer text.
             const isActionCue = /^\(.*\)$/.test(phrase.trim());
-            return isActionCue ? (
-              <Text key={i} style={styles.prayerActionCue}>
-                {phrase}
-              </Text>
-            ) : (
-              <QuoteAwareText key={i} text={phrase} style={styles.prayerPhrase} />
+            const latinPhrase = block.latinPhrases?.[i];
+            return (
+              <View key={i}>
+                {latinPhrase ? <Text style={styles.prayerLatinPhrase}>{latinPhrase}</Text> : null}
+                {isActionCue ? (
+                  <Text style={styles.prayerActionCue}>{phrase}</Text>
+                ) : (
+                  <QuoteAwareText text={phrase} style={styles.prayerPhrase} quoteStyle={styles.inlineQuote} />
+                )}
+              </View>
             );
           })}
         </View>
@@ -216,11 +246,11 @@ function Block({ block }: { block: ContentBlock }) {
         <View style={styles.readingBlock}>
           <Text style={styles.readingCitation}>{block.citation}</Text>
           <Text style={styles.readingIntro}>{block.introduction}</Text>
-          <QuoteAwarePhrases phrases={block.phrases} style={styles.paragraph} />
+          <QuoteAwarePhrases phrases={block.phrases} style={styles.paragraph} quoteStyle={styles.inlineQuote} />
           {block.closing ? (
             <View style={styles.dialogueBlock}>
-              <DialogueLineText keyId="leader" line={{ speaker: 'L', text: block.closing.leader }} />
-              <DialogueLineText keyId="response" line={{ speaker: 'R', text: block.closing.response }} />
+              <DialogueLineText keyId="leader" line={{ speaker: 'L', text: block.closing.leader }} styles={styles} />
+              <DialogueLineText keyId="response" line={{ speaker: 'R', text: block.closing.response }} styles={styles} />
             </View>
           ) : null}
         </View>
@@ -232,7 +262,7 @@ function Block({ block }: { block: ContentBlock }) {
           {block.items.map((item, i) => (
             <View key={i} style={styles.listItemRow}>
               <Text style={styles.listBullet}>{block.ordered ? `${i + 1}.` : '•'}</Text>
-              <QuoteAwareText text={item} style={styles.listItemText} />
+              <QuoteAwareText text={item} style={styles.listItemText} quoteStyle={styles.inlineQuote} />
             </View>
           ))}
         </View>
@@ -246,14 +276,17 @@ function Block({ block }: { block: ContentBlock }) {
       );
 
     case 'credit':
-      return <CreditText text={block.text} linkText={block.linkText} />;
+      return <CreditText text={block.text} linkText={block.linkText} styles={styles} />;
 
     default:
       return null;
   }
 }
 
-export function SectionRenderer({ section }: { section: VigilSection }) {
+export function SectionRenderer({ section, scale = 1 }: { section: VigilSection; scale?: number }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
+
   return (
     <View>
       {section.kicker ? <Text style={styles.kicker}>{section.kicker.toUpperCase()}</Text> : null}
@@ -266,214 +299,245 @@ export function SectionRenderer({ section }: { section: VigilSection }) {
       ) : null}
       <View style={styles.blocks}>
         {section.blocks.map((block, i) => (
-          <Block key={i} block={block} />
+          <Block key={i} block={block} styles={styles} colors={colors} />
         ))}
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.displaySemiBold,
-    fontSize: 14,
-    letterSpacing: 2,
-    color: colors.gold,
-    marginBottom: spacing.xs,
-  },
-  title: {
-    // The section's own name (e.g. "Worshipper") — the largest heading on
-    // the screen, clearly bigger than the sub-labels beneath it.
-    fontFamily: fonts.display,
-    fontSize: 33,
-    color: colors.accent,
-    marginBottom: spacing.sm,
-  },
-  titleSmall: {
-    // For reference-style pages (Acknowledgements) that don't need a full
-    // devotional-heading treatment.
-    fontFamily: fonts.displaySemiBold,
-    fontSize: 20,
-    color: colors.accent,
-    marginBottom: spacing.sm,
-  },
-  epigraphBlock: {
-    borderLeftWidth: 3,
-    borderLeftColor: colors.gold,
-    paddingLeft: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  epigraphText: {
-    fontFamily: fonts.italicMedium,
-    fontSize: 20,
-    color: colors.text,
-    lineHeight: 28,
-  },
-  epigraphCitation: {
-    fontFamily: fonts.italic,
-    fontSize: 14,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  blocks: {
-    gap: spacing.md,
-  },
-  label: {
-    // Sub-headings like "SPIRITUAL DISPOSITION" / "READING" — bigger than
-    // the body copy they introduce, but clearly smaller than the section
-    // title above, and gold (not maroon) so the two tiers can't be confused.
-    fontFamily: fonts.display,
-    fontSize: 22,
-    letterSpacing: 0.8,
-    color: colors.gold,
-    marginTop: spacing.md,
-  },
-  rubric: {
-    fontFamily: fonts.italic,
-    fontSize: 19,
-    color: colors.rubric,
-    textAlign: 'center',
-  },
-  paragraph: {
-    fontFamily: fonts.body,
-    fontSize: 21,
-    lineHeight: 31,
-    color: colors.text,
-  },
-  inlineQuote: {
-    fontFamily: fonts.italic,
-  },
-  hymnCue: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.border,
-    borderRadius: radii.sm,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  hymnCueText: {
-    fontFamily: fonts.italic,
-    fontSize: 16,
-    color: colors.textMuted,
-  },
-  bilingualWrap: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  bilingualCol: {
-    flex: 1,
-  },
-  bilingualLine: {
-    // Kept smaller than the app's usual body copy so long English lines are
-    // less likely to wrap and drift out of row-alignment with their shorter
-    // Latin counterpart in the column beside them.
-    fontFamily: fonts.body,
-    fontSize: 15,
-    lineHeight: 21,
-    color: colors.text,
-  },
-  latin: {
-    fontFamily: fonts.italic,
-    color: colors.textMuted,
-  },
-  dialogueBlock: {
-    // Enough room for consecutive Side 1 / Side 2 (or L / R) entries to read
-    // as separate turns rather than running together.
-    gap: spacing.md,
-  },
-  dialogueLine: {
-    fontFamily: fonts.body,
-    fontSize: 21,
-    lineHeight: 30,
-    color: colors.text,
-  },
-  dialogueLineBold: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 21,
-    lineHeight: 30,
-    color: colors.text,
-  },
-  dialogueSpeaker: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 21,
-    color: colors.accent,
-  },
-  prayerBlock: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  prayerPhrase: {
-    fontFamily: fonts.body,
-    fontSize: 21,
-    lineHeight: 31,
-    color: colors.text,
-  },
-  prayerActionCue: {
-    fontFamily: fonts.italic,
-    fontSize: 19,
-    lineHeight: 27,
-    color: colors.rubric,
-    textAlign: 'center',
-  },
-  readingBlock: {
-    gap: spacing.sm,
-  },
-  readingCitation: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 16,
-    color: colors.gold,
-  },
-  readingIntro: {
-    fontFamily: fonts.italicMedium,
-    fontSize: 19,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  listBlock: {
-    gap: spacing.sm,
-  },
-  listItemRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  listBullet: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 21,
-    lineHeight: 30,
-    color: colors.gold,
-    width: 34,
-  },
-  listItemText: {
-    flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 21,
-    lineHeight: 30,
-    color: colors.text,
-  },
-  noteBlock: {
-    backgroundColor: '#F3ECE1',
-    borderRadius: radii.sm,
-    padding: spacing.sm,
-  },
-  noteText: {
-    fontFamily: fonts.italic,
-    fontSize: 16,
-    color: colors.textMuted,
-    lineHeight: 22,
-  },
-  creditText: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textMuted,
-  },
-  creditLink: {
-    fontFamily: fonts.italic,
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#2255CC',
-  },
-});
+/** Scales font size/line height only — spacing, colors, and borders stay fixed regardless of text-size preference. */
+function f(px: number, scale: number): number {
+  return Math.round(px * scale);
+}
+
+function createStyles(scale: number, colors: ThemeColors) {
+  return StyleSheet.create({
+    kicker: {
+      fontFamily: fonts.displaySemiBold,
+      fontSize: f(14, scale),
+      letterSpacing: 2,
+      color: colors.gold,
+      marginBottom: spacing.xs,
+    },
+    title: {
+      // The section's own name (e.g. "Worshipper") — the largest heading on
+      // the screen, clearly bigger than the sub-labels beneath it.
+      fontFamily: fonts.display,
+      fontSize: f(33, scale),
+      color: colors.accent,
+      marginBottom: spacing.sm,
+    },
+    titleSmall: {
+      // For reference-style pages (Acknowledgements) that don't need a full
+      // devotional-heading treatment.
+      fontFamily: fonts.displaySemiBold,
+      fontSize: f(20, scale),
+      color: colors.accent,
+      marginBottom: spacing.sm,
+    },
+    epigraphBlock: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.gold,
+      paddingLeft: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    epigraphText: {
+      fontFamily: fonts.italicMedium,
+      fontSize: f(20, scale),
+      color: colors.text,
+      lineHeight: f(28, scale),
+    },
+    epigraphCitation: {
+      fontFamily: fonts.italic,
+      fontSize: f(14, scale),
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+    },
+    blocks: {
+      gap: spacing.md,
+    },
+    label: {
+      // Sub-headings like "SPIRITUAL DISPOSITION" / "READING" — bigger than
+      // the body copy they introduce, but clearly smaller than the section
+      // title above, and gold (not maroon) so the two tiers can't be confused.
+      fontFamily: fonts.display,
+      fontSize: f(22, scale),
+      letterSpacing: 0.8,
+      color: colors.gold,
+      marginTop: spacing.md,
+    },
+    rubric: {
+      fontFamily: fonts.italic,
+      fontSize: f(19, scale),
+      color: colors.rubric,
+      textAlign: 'center',
+    },
+    paragraph: {
+      fontFamily: fonts.body,
+      fontSize: f(21, scale),
+      lineHeight: f(31, scale),
+      color: colors.text,
+    },
+    inlineQuote: {
+      fontFamily: fonts.italic,
+    },
+    hymnCueWrap: {
+      alignSelf: 'flex-start',
+      gap: spacing.xs,
+    },
+    hymnCue: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      alignSelf: 'flex-start',
+      backgroundColor: colors.border,
+      borderRadius: radii.sm,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+    },
+    hymnCueText: {
+      fontFamily: fonts.italic,
+      fontSize: f(16, scale),
+      color: colors.textMuted,
+    },
+    hymnCueHint: {
+      fontFamily: fonts.italic,
+      fontSize: f(13, scale),
+      color: colors.textMuted,
+    },
+    bilingualWrap: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    bilingualCol: {
+      flex: 1,
+    },
+    bilingualLine: {
+      // Kept smaller than the app's usual body copy so long English lines are
+      // less likely to wrap and drift out of row-alignment with their shorter
+      // Latin counterpart in the column beside them.
+      fontFamily: fonts.body,
+      fontSize: f(15, scale),
+      lineHeight: f(21, scale),
+      color: colors.text,
+    },
+    latin: {
+      fontFamily: fonts.italic,
+      color: colors.textMuted,
+    },
+    dialogueBlock: {
+      // Enough room for consecutive Side 1 / Side 2 (or L / R) entries to read
+      // as separate turns rather than running together.
+      gap: spacing.md,
+    },
+    dialogueLine: {
+      fontFamily: fonts.body,
+      fontSize: f(21, scale),
+      lineHeight: f(30, scale),
+      color: colors.text,
+    },
+    dialogueLineBold: {
+      fontFamily: fonts.bodyBold,
+      fontSize: f(21, scale),
+      lineHeight: f(30, scale),
+      color: colors.text,
+    },
+    dialogueSpeaker: {
+      fontFamily: fonts.bodyBold,
+      fontSize: f(21, scale),
+      color: colors.accent,
+    },
+    dialogueLatinLine: {
+      fontFamily: fonts.italic,
+      fontSize: f(19, scale),
+      lineHeight: f(27, scale),
+      color: colors.textMuted,
+    },
+    prayerBlock: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    prayerPhrase: {
+      fontFamily: fonts.body,
+      fontSize: f(21, scale),
+      lineHeight: f(31, scale),
+      color: colors.text,
+    },
+    prayerActionCue: {
+      fontFamily: fonts.italic,
+      fontSize: f(19, scale),
+      lineHeight: f(27, scale),
+      color: colors.rubric,
+      textAlign: 'center',
+    },
+    prayerLatinPhrase: {
+      fontFamily: fonts.italic,
+      fontSize: f(19, scale),
+      lineHeight: f(28, scale),
+      color: colors.textMuted,
+    },
+    readingBlock: {
+      gap: spacing.sm,
+    },
+    readingCitation: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: f(16, scale),
+      color: colors.gold,
+    },
+    readingIntro: {
+      fontFamily: fonts.italicMedium,
+      fontSize: f(19, scale),
+      color: colors.text,
+      marginBottom: spacing.xs,
+    },
+    listBlock: {
+      gap: spacing.sm,
+    },
+    listItemRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    listBullet: {
+      fontFamily: fonts.bodyBold,
+      fontSize: f(21, scale),
+      lineHeight: f(30, scale),
+      color: colors.gold,
+      width: 34,
+    },
+    listItemText: {
+      flex: 1,
+      fontFamily: fonts.body,
+      fontSize: f(21, scale),
+      lineHeight: f(30, scale),
+      color: colors.text,
+    },
+    noteBlock: {
+      backgroundColor: colors.noteBackground,
+      borderRadius: radii.sm,
+      padding: spacing.sm,
+    },
+    noteText: {
+      fontFamily: fonts.italic,
+      fontSize: f(16, scale),
+      color: colors.textMuted,
+      lineHeight: f(22, scale),
+    },
+    creditText: {
+      fontFamily: fonts.body,
+      fontSize: f(14, scale),
+      lineHeight: f(20, scale),
+      color: colors.textMuted,
+    },
+    creditLink: {
+      fontFamily: fonts.italic,
+      fontSize: f(14, scale),
+      lineHeight: f(20, scale),
+      color: colors.creditLink,
+    },
+  });
+}

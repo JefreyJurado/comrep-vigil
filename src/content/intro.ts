@@ -58,10 +58,15 @@ export const introPart: VigilPart = {
           type: 'credit',
           text: 'Copyright © MMXXIV, Secular Male Institute of the Two Hearts. 45 Brgy. Imok, 4012 Calauan, Laguna, Philippines. Printed in the Philippines.',
         },
+        { type: 'label', text: 'With Gratitude' },
         {
           type: 'credit',
-          text: 'This companion prayer app was developed by Jefrey T. Jurado.',
+          text: 'For the Secular Male Institute of the Two Hearts (SMITH):',
         },
+        { type: 'credit', text: 'Br. Sherwin John Malubay, SMITH — Superior General · Consultant' },
+        { type: 'credit', text: 'Br. Giancarlo Miranda, SMITH — Councilor for Members · Consultant' },
+        { type: 'credit', text: 'Br. Angelo Lorenzo “Albert Ma.” Salvacion, OATH — Consultant' },
+        { type: 'credit', text: 'Jefrey T. Jurado — Developer' },
       ],
     },
     {

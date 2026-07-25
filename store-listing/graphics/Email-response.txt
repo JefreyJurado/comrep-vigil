@@ -1,10 +1,20 @@
-Hey [Name],
+You're in! Here's how to install ComRep Vigil 🙏
 
-I built an app called ComRep Vigil — a digital guide for the Communion of Reparation All Night Vigil, so you can follow along on your phone instead of flipping through the booklet in a dark chapel.
+Hi,
 
-Before launching it publicly, I need a few testers. Takes 2 minutes:
-👉 https://forms.gle/DaQptJUwhDcYkBix9
+Thank you for signing up to test ComRep Vigil! Here's how to join:
 
-Any feedback, just reply to this email. Thanks! 🙏
+1. Open this link on your Android phone or tablet:
+👉 
+
+https://play.google.com/apps/testing/org.twohearts.comrepvigil
+
+2. Tap "Become a tester", then follow the prompt to install the app from the Play Store.
+
+3. Open it up and try it out — step through the vigil, check the Table of Contents, whatever feels natural.
+
+If anything looks off or you think of something that'd make it better, just reply to this email — I read everything.
+
+Thanks again for helping out, and please keep this little project in your prayers. 🙏
 
 — Jefrey

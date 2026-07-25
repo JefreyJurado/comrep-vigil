@@ -10,6 +10,8 @@ export type Speaker = 'L' | 'R' | 'A' | 'Presider' | 'Side 1' | 'Side 2' | 'Lect
 export interface DialogueLine {
   speaker: Speaker;
   text: string;
+  /** Parallel Latin text for this line, shown above the (English) text. */
+  latin?: string;
 }
 
 export type ContentBlock =
@@ -25,8 +27,10 @@ export type ContentBlock =
   | { type: 'bilingual'; latin: string[]; english: string[] }
   /** Leader/response or multi-speaker dialogue prayer */
   | { type: 'dialogue'; lines: DialogueLine[] }
-  /** A longer spoken prayer, broken into phrases for pacing */
-  | { type: 'prayer'; speaker?: Speaker; phrases: string[] }
+  /** A longer spoken prayer, broken into phrases for pacing. If latinPhrases
+   * is given, it must be the same length as phrases — each Latin phrase is
+   * shown above its English counterpart. */
+  | { type: 'prayer'; speaker?: Speaker; phrases: string[]; latinPhrases?: string[] }
   /** Scripture reading */
   | {
       type: 'reading';

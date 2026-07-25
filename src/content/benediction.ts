@@ -52,19 +52,31 @@ export const benedictionPart: VigilPart = {
         {
           type: 'dialogue',
           lines: [
-            { speaker: 'Presider', text: 'You have given them Bread from heaven (Alleluia).' },
-            { speaker: 'R', text: 'Having all sweetness within it (Alleluia).' },
+            {
+              speaker: 'Presider',
+              latin: 'Panem de cælo præstitísti eis (Allelúia).',
+              text: 'You have given them Bread from heaven (Alleluia).',
+            },
+            {
+              speaker: 'R',
+              latin: 'Omne delectaméntum in se habéntem (Allelúia).',
+              text: 'Having all sweetness within it (Alleluia).',
+            },
           ],
         },
         {
           type: 'dialogue',
-          lines: [
-            { speaker: 'Presider', text: 'Let us pray.' },
-          ],
+          lines: [{ speaker: 'Presider', latin: 'Orémus.', text: 'Let us pray.' }],
         },
         {
           type: 'prayer',
           speaker: 'Presider',
+          latinPhrases: [
+            'Deus, qui nobis sub sacraménto mirábili passiónis tuæ memóriam reliquísti,',
+            'tríbue, quǽsumus, ita nos Córporis et Sánguinis tui sacra mystéria venerári,',
+            'ut redemptiónis tuæ fructum in nobis iúgiter sentiámus.',
+            'Qui vivis et regnas cum Deo Patre in unitáte Spíritus Sancti, Deus, per ómnia sǽcula sæculórum.',
+          ],
           phrases: [
             'O God, who in this wonderful Sacrament have left us a memorial of your Passion,',
             'grant us, we pray, so to revere the sacred mysteries of your Body and Blood',

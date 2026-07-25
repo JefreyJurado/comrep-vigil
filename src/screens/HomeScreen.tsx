@@ -1,11 +1,24 @@
-import { useCallback, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, fonts, radii, spacing } from '../theme/theme';
+import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { loadProgress } from '../utils/progress';
+import { loadUserName, saveUserName } from '../utils/profile';
+import { getLiturgicalDayLabel } from '../utils/liturgicalCalendar';
 import { flatSteps } from '../content';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -17,8 +30,24 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 const NBSP = String.fromCharCode(160);
 
 export function HomeScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [resumeIndex, setResumeIndex] = useState<number | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
   const insets = useSafeAreaInsets();
+  const liturgicalDay = useMemo(() => getLiturgicalDayLabel(), []);
+  const todayLabel = useMemo(
+    () =>
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -28,23 +57,61 @@ export function HomeScreen({ navigation }: Props) {
         const isResumable = index !== null && index > 0 && index < flatSteps.length - 1;
         setResumeIndex(isResumable ? index : null);
       });
+      loadUserName().then((storedName) => {
+        if (!active) return;
+        setName(storedName);
+        if (!storedName) setEditingName(true);
+      });
       return () => {
         active = false;
       };
     }, [])
   );
 
+  const onSaveName = () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) return;
+    saveUserName(trimmed);
+    setName(trimmed);
+    setNameDraft('');
+    setEditingName(false);
+  };
+
+  const onEditName = () => {
+    setNameDraft(name ?? '');
+    setEditingName(true);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Pressable
-        style={[styles.settingsButton, { top: insets.top + spacing.sm }]}
-        onPress={() => navigation.navigate('Settings')}
-        hitSlop={12}
-        accessibilityLabel="Settings"
+      <View style={[styles.header, { top: insets.top + spacing.sm }]}>
+        <View style={styles.headerText}>
+          <Text style={styles.dateLine}>{todayLabel}</Text>
+          <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
+        </View>
+        <View style={styles.headerIcons}>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => navigation.navigate('TableOfContents')}
+            hitSlop={12}
+            accessibilityLabel="Contents"
+          >
+            <Ionicons name="book-outline" size={22} color={colors.textMuted} />
+          </Pressable>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => navigation.navigate('Settings')}
+            hitSlop={12}
+            accessibilityLabel="Settings"
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.textMuted} />
+          </Pressable>
+        </View>
+      </View>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text style={styles.settingsButtonText}>Settings</Text>
-      </Pressable>
-      <View style={styles.container}>
         <Image
           source={require('../../assets/two-hearts.png')}
           style={styles.logo}
@@ -56,6 +123,35 @@ export function HomeScreen({ navigation }: Props) {
         <Text style={styles.tagline}>
           {`First Friday – First Saturday Devotion in Honor of the Sacred Heart of Jesus and the Immaculate Heart${NBSP}of${NBSP}Mary`}
         </Text>
+
+        {editingName ? (
+          <View style={styles.nameCard}>
+            <Text style={styles.nameCardLabel}>What should we call you?</Text>
+            <TextInput
+              style={styles.nameInput}
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              placeholder="Your name"
+              placeholderTextColor={colors.textMuted}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={onSaveName}
+            />
+            <Pressable
+              style={[styles.button, styles.primaryButton, styles.nameSaveButton]}
+              onPress={onSaveName}
+              disabled={!nameDraft.trim()}
+            >
+              <Text style={styles.primaryButtonText}>Save</Text>
+            </Pressable>
+          </View>
+        ) : (
+          name && (
+            <Pressable onPress={onEditName} hitSlop={8}>
+              <Text style={styles.greeting}>Welcome back, {name}</Text>
+            </Pressable>
+          )
+        )}
 
         <View style={styles.actions}>
           {resumeIndex !== null && (
@@ -77,20 +173,17 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('Vigil', { startIndex: 0 })}
           >
             <Text style={resumeIndex === null ? styles.primaryButtonText : styles.secondaryButtonText}>
-              Begin Vigil from the Start
+              Pray
             </Text>
           </Pressable>
-
-          <Pressable style={[styles.button, styles.secondaryButton]} onPress={() => navigation.navigate('TableOfContents')}>
-            <Text style={styles.secondaryButtonText}>Table of Contents</Text>
-          </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -101,20 +194,82 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
-  settingsButton: {
+  header: {
     position: 'absolute',
+    left: spacing.lg,
     right: spacing.lg,
     zIndex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  settingsButtonText: {
-    fontFamily: fonts.italic,
-    fontSize: 15,
-    color: colors.textMuted,
+  headerText: {
+    flex: 1,
+    paddingRight: spacing.sm,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    flexShrink: 0,
+  },
+  headerIconButton: {
+    padding: spacing.xs,
   },
   logo: {
     width: 140,
     height: 100,
     marginBottom: spacing.lg,
+  },
+  dateLine: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.text,
+    textAlign: 'left',
+  },
+  liturgicalDay: {
+    fontFamily: fonts.italic,
+    fontSize: 12,
+    letterSpacing: 0.2,
+    color: colors.gold,
+    textAlign: 'left',
+    lineHeight: 16,
+  },
+  greeting: {
+    fontFamily: fonts.italicMedium,
+    fontSize: 17,
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
+  nameCard: {
+    width: '100%',
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  nameCardLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 16,
+    color: colors.text,
+  },
+  nameInput: {
+    width: '100%',
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.text,
+  },
+  nameSaveButton: {
+    width: '100%',
   },
   title: {
     fontFamily: fonts.display,
@@ -153,13 +308,12 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontFamily: fonts.bodySemiBold,
-    color: '#fff',
+    color: colors.onAccent,
     fontSize: 16,
   },
   buttonSubtext: {
     fontFamily: fonts.italic,
-    color: '#fff',
-    opacity: 0.9,
+    color: colors.onAccent,
     fontSize: 13,
     marginTop: 2,
   },
@@ -173,4 +327,5 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: 16,
   },
-});
+  });
+}
