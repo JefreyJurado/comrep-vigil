@@ -53,3 +53,7 @@ yarn-error.*
 # built release artifacts (.aab/.apk) — large binaries, don't belong in git
 /releases
 
+# copyrighted reference PDF (ICEL/USCCB, "no reproduction without written
+# permission") — keep locally for reference only, never commit
+/store-listing/THE ROMAN MISSAL-bookmarked.pdf
+
