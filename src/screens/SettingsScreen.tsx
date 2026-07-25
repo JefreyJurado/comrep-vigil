@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { ThemedSwitch } from '../components/ThemedSwitch';
-import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { clearProgress } from '../utils/progress';
 import {
@@ -188,6 +188,9 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
     },
     content: {
+      width: '100%',
+      maxWidth: contentMaxWidth,
+      alignSelf: 'center',
       padding: spacing.lg,
       gap: spacing.sm,
     },

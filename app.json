@@ -2,8 +2,8 @@
   "expo": {
     "name": "ComRep Vigil",
     "slug": "comrep-vigil",
-    "version": "1.0.1",
-    "orientation": "portrait",
+    "version": "1.0.2",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "org.twohearts.comrepvigil",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",

@@ -10,6 +10,10 @@ export const introPart: VigilPart = {
       smallTitle: true,
       blocks: [
         {
+          type: 'note',
+          text: 'A note on this app’s wording: a few prayers here read a little differently from the printed booklet. Official liturgical translations — such as the Roman Missal and the Liturgy of the Hours — are copyrighted by their publishers and require written permission to reproduce, which this app does not yet have for every text. Where that is the case, this app uses an original rendering that keeps the same meaning and intention rather than the official wording.',
+        },
+        {
           type: 'credit',
           text: 'Image of the Sacred Heart of Jesus and the Immaculate Heart of Mary © 2018 Edilberto B. Dionio. Used with thanks to the artist.',
         },
@@ -58,11 +62,11 @@ export const introPart: VigilPart = {
           type: 'credit',
           text: 'Copyright © MMXXIV, Secular Male Institute of the Two Hearts. 45 Brgy. Imok, 4012 Calauan, Laguna, Philippines. Printed in the Philippines.',
         },
-        { type: 'label', text: 'With Gratitude' },
         {
           type: 'credit',
-          text: 'For the Secular Male Institute of the Two Hearts (SMITH):',
+          text: 'This app is offered freely for personal and community devotional use and is not for commercial sale or distribution. All excerpted materials remain the property of their respective copyright holders, as credited above.',
         },
+        { type: 'label', text: 'Special Thanks' },
         { type: 'credit', text: 'Br. Sherwin John Malubay, SMITH — Superior General · Consultant' },
         { type: 'credit', text: 'Br. Giancarlo Miranda, SMITH — Councilor for Members · Consultant' },
         { type: 'credit', text: 'Br. Angelo Lorenzo “Albert Ma.” Salvacion, OATH — Consultant' },

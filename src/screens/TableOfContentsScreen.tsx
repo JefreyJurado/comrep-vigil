@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { fonts, spacing, ThemeColors } from '../theme/theme';
+import { contentMaxWidth, fonts, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { vigilParts, findStepIndex } from '../content';
 
@@ -45,6 +45,9 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
     },
     content: {
+      width: '100%',
+      maxWidth: contentMaxWidth,
+      alignSelf: 'center',
       padding: spacing.lg,
       gap: spacing.lg,
     },

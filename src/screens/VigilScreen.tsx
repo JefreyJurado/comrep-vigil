@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { flatSteps } from '../content';
 import { SectionRenderer } from '../components/SectionRenderer';
@@ -135,6 +135,9 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.accent,
     },
     content: {
+      width: '100%',
+      maxWidth: contentMaxWidth,
+      alignSelf: 'center',
       padding: spacing.lg,
       paddingBottom: spacing.xl,
     },

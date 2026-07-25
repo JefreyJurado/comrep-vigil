@@ -330,9 +330,10 @@ function createStyles(scale: number, colors: ThemeColors) {
     },
     titleSmall: {
       // For reference-style pages (Acknowledgements) that don't need a full
-      // devotional-heading treatment.
+      // devotional-heading treatment — but still bigger than the `label`
+      // sub-headings (22px) beneath it, so the hierarchy reads correctly.
       fontFamily: fonts.displaySemiBold,
-      fontSize: f(20, scale),
+      fontSize: f(26, scale),
       color: colors.accent,
       marginBottom: spacing.sm,
     },

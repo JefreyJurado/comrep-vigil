@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
+import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { loadProgress } from '../utils/progress';
 import { loadUserName, saveUserName } from '../utils/profile';
@@ -190,6 +190,9 @@ function createStyles(colors: ThemeColors) {
   },
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: contentMaxWidth,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,

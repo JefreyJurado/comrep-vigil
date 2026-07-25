@@ -69,6 +69,10 @@ export const benedictionPart: VigilPart = {
           lines: [{ speaker: 'Presider', latin: 'Orémus.', text: 'Let us pray.' }],
         },
         {
+          // English is an original rendering of the Latin, not the 2011
+          // ICEL Roman Missal translation of this collect, which is
+          // separately copyrighted and requires its own permission to
+          // reproduce.
           type: 'prayer',
           speaker: 'Presider',
           latinPhrases: [
@@ -78,10 +82,10 @@ export const benedictionPart: VigilPart = {
             'Qui vivis et regnas cum Deo Patre in unitáte Spíritus Sancti, Deus, per ómnia sǽcula sæculórum.',
           ],
           phrases: [
-            'O God, who in this wonderful Sacrament have left us a memorial of your Passion,',
-            'grant us, we pray, so to revere the sacred mysteries of your Body and Blood',
-            'that we may always experience in ourselves the fruits of your redemption.',
-            'Who live and reign with God the Father in the unity of the Holy Spirit, God, for ever and ever.',
+            'O God, in this wonderful Sacrament You have left us a lasting memorial of Your Passion,',
+            'grant that we may so honor the sacred mysteries of Your Body and Blood',
+            'that the fruit of Your redeeming work may live in us always.',
+            'You live and reign with the Father and the Holy Spirit, one God, for ever and ever.',
           ],
         },
         { type: 'dialogue', lines: [{ speaker: 'R', text: 'Amen.' }] },

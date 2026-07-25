@@ -68,6 +68,12 @@ export const radii = {
   lg: 22,
 };
 
+// Caps how wide reading content (vigil text, settings, contents list) can
+// stretch on tablets/landscape/desktop web, where orientation is no longer
+// locked to portrait — without this, paragraph lines run edge-to-edge and
+// become uncomfortable to read at those widths.
+export const contentMaxWidth = 700;
+
 // Liturgical type system, in the spirit of a Roman Missal: Cinzel (an
 // inscriptional Roman-capitals face) for titles, Linux Libertine — a book
 // text face with a larger x-height and steadier stroke weight than
