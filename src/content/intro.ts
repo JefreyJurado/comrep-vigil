@@ -11,7 +11,7 @@ export const introPart: VigilPart = {
       blocks: [
         {
           type: 'note',
-          text: 'A note on this app’s wording: a few prayers here read a little differently from the printed booklet. Official liturgical translations — such as the Roman Missal and the Liturgy of the Hours — are copyrighted by their publishers and require written permission to reproduce, which this app does not yet have for every text. Where that is the case, this app uses an original rendering that keeps the same meaning and intention rather than the official wording.',
+          text: 'A note on this app’s wording: some prayers here read a little differently from the printed booklet. Official liturgical translations — such as the Roman Missal and the Liturgy of the Hours — are copyrighted by their publishers and require written permission to reproduce. Where permission has not yet been secured, this app uses an original rendering that keeps the same meaning and intention rather than the official wording. The psalms in the Saturday Office of Readings use the Revised Grail Psalms translation (© 2010 Conception Abbey/The Grail, admin. GIA Publications, Inc.); permission for this use has been requested but not yet granted.',
         },
         {
           type: 'credit',
@@ -67,10 +67,10 @@ export const introPart: VigilPart = {
           text: 'This app is offered freely for personal and community devotional use and is not for commercial sale or distribution. All excerpted materials remain the property of their respective copyright holders, as credited above.',
         },
         { type: 'label', text: 'Special Thanks' },
-        { type: 'credit', text: 'Br. Sherwin John Malubay, SMITH — Superior General · Consultant' },
-        { type: 'credit', text: 'Br. Giancarlo Miranda, SMITH — Councilor for Members · Consultant' },
-        { type: 'credit', text: 'Br. Angelo Lorenzo “Albert Ma.” Salvacion, OATH — Consultant' },
-        { type: 'credit', text: 'Jefrey T. Jurado — Developer' },
+        {
+          type: 'credit',
+          text: 'Br. Sherwin John Malubay, SMITH — Superior General · Consultant\nBr. Giancarlo Miranda, SMITH — Councilor for Members · Consultant\nBr. Angelo Lorenzo “Albert Ma.” Salvacion, OATH — Consultant\nJefrey T. Jurado — Developer',
+        },
       ],
     },
     {

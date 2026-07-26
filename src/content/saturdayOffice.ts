@@ -29,7 +29,7 @@ export const saturdayOfficePart: VigilPart = {
       blocks: [
         {
           type: 'note',
-          text: 'Memorial of the Blessed Virgin Mary — in the spirit of the Office of Readings for the Feast of the Immaculate Heart of Mary, in original wording. The psalm texts below use the public-domain Douay-Rheims translation.',
+          text: 'Memorial of the Blessed Virgin Mary — adapted from the Office of Readings for the Feast of the Immaculate Heart of Mary.',
         },
         { type: 'rubric', text: 'Please stand and make the Sign of the Cross as the priest prays', posture: 'stand' },
         {
@@ -53,59 +53,59 @@ export const saturdayOfficePart: VigilPart = {
     {
       id: 'psalm-24',
       title: 'Psalm 24 — The Lord’s Entry into His Temple',
-      blocks: psalmBlock('The Lord blessed Mary and filled her with the mercy of God her Savior.', [
-        { side: 'Side 1', text: 'The earth is the Lord’s and the fullness thereof: the world, and all they that dwell therein.' },
-        { side: 'Side 1', text: 'For He hath founded it upon the seas, and hath prepared it upon the rivers.' },
+      blocks: psalmBlock('Mary received a blessing from the Lord and loving kindness from God her Savior.', [
+        { side: 'Side 1', text: 'The Lord’s is the earth and its fullness, the world and all its peoples.' },
+        { side: 'Side 1', text: 'It is He who set it on the seas, on the waters He made it firm.' },
         {
           side: 'Side 2',
-          text: 'Who shall ascend into the mountain of the Lord? Or who shall stand in His holy place? The innocent in hands, and clean of heart, who hath not taken his soul in vain, nor sworn deceitfully to his neighbor.',
+          text: 'Who can climb the Lord’s mountain? Who shall stand in His holy place? The man with clean hands and pure heart, who desires not worthless things, who has not sworn so as to deceive his neighbor.',
         },
         {
           side: 'Side 1',
-          text: 'He shall receive a blessing from the Lord, and mercy from God his Savior. This is the generation of them that seek Him, of them that seek the face of the God of Jacob.',
+          text: 'He shall receive blessings from the Lord, and reward from the God who saves him. Such are the men who seek Him, seek the face of the God of Jacob.',
         },
-        { side: 'Side 2', text: 'Lift up your gates, O ye princes, and be lifted up, O eternal gates: and the King of Glory shall enter in.' },
-        { side: 'Side 1', text: 'Who is this King of Glory? The Lord who is strong and mighty, the Lord mighty in battle.' },
-        { side: 'Side 2', text: 'Lift up your gates, O ye princes, and be lifted up, O eternal gates: and the King of Glory shall enter in.' },
-        { side: 'Side 1', text: 'Who is this King of Glory? The Lord of hosts, He is the King of Glory.' },
+        { side: 'Side 2', text: 'O gates, lift high your heads, grow higher, ancient doors. Let him enter, the king of glory!' },
+        { side: 'Side 1', text: 'Who is the king of glory? The Lord, the mighty, the valiant, The Lord, the valiant in war.' },
+        { side: 'Side 2', text: 'O gates, lift high your heads, grow higher, ancient doors. Let Him enter, the king of glory!' },
+        { side: 'Side 1', text: 'Who is He, the king of glory? He, the Lord of armies, He is the king of glory.' },
       ]),
     },
     {
       id: 'psalm-46',
       title: 'Psalm 46 — God is on Our Side',
-      blocks: psalmBlock('God made Mary a holy dwelling place for Himself.', [
+      blocks: psalmBlock('The Most High has made His dwelling place a holy temple.', [
         {
           side: 'Side 1',
-          text: 'Our God is our refuge and strength, a helper ready in troubles that beset us. Therefore we will not fear, though the earth be troubled, and the mountains be moved into the heart of the sea.',
+          text: 'God is for us a refuge and strength, a helper close at hand, in time of distress: so we shall not fear though the earth should rock, though the mountains fall into the depths of the sea, even though its waters rage and foam, even though the mountains be shaken by its waves.',
         },
-        { side: 'Side 2', text: 'The Lord of hosts is with us; the God of Jacob is our protector.' },
+        { side: 'Side 2', text: 'The Lord of hosts is with us, the God of Jacob is our stronghold.' },
         {
           side: 'Side 1',
-          text: 'The stream of the river makes glad the city of God; the Most High has sanctified His own dwelling place. God is in the midst of her, she shall not be moved; God will help her at the break of day. Nations were troubled, kingdoms were bowed down; He uttered His voice, the earth trembled.',
+          text: 'The waters of a river give joy to God’s city, the holy place where the Most High dwells. God is within, it cannot be shaken; God will help it at the dawning of the day, Nations are in tumult, kingdoms are shaken; He lifts His voice; the earth shrinks away.',
         },
-        { side: 'Side 2', text: 'The Lord of hosts is with us; the God of Jacob is our protector.' },
+        { side: 'Side 2', text: 'The Lord of hosts is with us, the God of Jacob is our stronghold.' },
         {
           side: 'Side 1',
-          text: 'Come and behold the works of the Lord, what wonders He has done upon the earth, making wars to cease even to the end of the earth. He shall break the bow, and shatter the weapons; the shield He shall burn in the fire. "Be still, and know that I am God; I will be exalted among the nations, I will be exalted in the earth."',
+          text: 'Come, consider the works of the Lord, the redoubtable deeds He has done on the earth. He puts an end to wars over all the earth; the bow He breaks, the spear He snaps. He burns the shields with fire. "Be still and know that I am God, supreme among the nations, supreme on the earth!"',
         },
-        { side: 'Side 2', text: 'The Lord of hosts is with us; the God of Jacob is our protector.' },
+        { side: 'Side 2', text: 'The Lord of hosts is with us, the God of Jacob is our stronghold.' },
       ]),
     },
     {
       id: 'psalm-87',
       title: 'Psalm 87 — Jerusalem Is Mother of Us All',
-      blocks: psalmBlock('How glorious are the things spoken of you, O Virgin Mary.', [
+      blocks: psalmBlock('Glorious things are said of you, O Virgin Mary.', [
         {
           side: 'Side 1',
-          text: 'Her foundations are set upon the holy mountains; the Lord loves the gates of Zion above all the dwellings of Jacob. Glorious things are spoken of you, O city of God!',
+          text: 'On the holy mountain is His city cherished by the Lord. The Lord prefers the gates of Zion to all Jacob’s dwellings. Of you are told glorious things, O city of God!',
         },
         {
           side: 'Side 2',
-          text: 'I will make mention of Rahab and Babylon among those who know Me; behold Philistia, and Tyre, with Ethiopia — this one was born there.',
+          text: 'Babylon and Egypt I will count among those who know me; Philistia, Tyre, Ethiopia, these will be her children and Zion shall be called "Mother" for all shall be her children.',
         },
         {
           side: 'Side 1',
-          text: 'And of Zion it shall be said: this one and that one were born in her, and the Most High Himself has established her. The Lord shall count, when He writes up the peoples, that this one was born there.',
+          text: 'It is He, the Lord Most high, who gives each His place. In His register of peoples He writes: "These are her children," and while they dance they will sing: "In you all find their home."',
         },
       ]),
     },

@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  AppState,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -29,6 +30,25 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 // wraps alone onto its own line.
 const NBSP = String.fromCharCode(160);
 
+function computeDateLabels() {
+  return {
+    liturgicalDay: getLiturgicalDayLabel(),
+    todayLabel: new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }),
+  };
+}
+
+/** Milliseconds from now until the next local midnight. */
+function msUntilNextMidnight(): number {
+  const now = new Date();
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  return nextMidnight.getTime() - now.getTime();
+}
+
 export function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -37,21 +57,15 @@ export function HomeScreen({ navigation }: Props) {
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const insets = useSafeAreaInsets();
-  const liturgicalDay = useMemo(() => getLiturgicalDayLabel(), []);
-  const todayLabel = useMemo(
-    () =>
-      new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    []
-  );
+  // The date can roll over while the app sits open or backgrounded overnight,
+  // so these are refreshed on focus and app-foreground below rather than
+  // computed once and cached for the component's lifetime.
+  const [{ liturgicalDay, todayLabel }, setDateLabels] = useState(computeDateLabels);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setDateLabels(computeDateLabels());
       loadProgress().then((index) => {
         if (!active) return;
         const isResumable = index !== null && index > 0 && index < flatSteps.length - 1;
@@ -67,6 +81,29 @@ export function HomeScreen({ navigation }: Props) {
       };
     }, [])
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') setDateLabels(computeDateLabels());
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // Recompute at the stroke of midnight even if the app is left open and
+  // untouched — focus/foreground alone wouldn't catch that case. Reschedules
+  // itself off a fresh `msUntilNextMidnight()` each time rather than a fixed
+  // 24h interval, so it can't drift.
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      timeoutId = setTimeout(() => {
+        setDateLabels(computeDateLabels());
+        scheduleNext();
+      }, msUntilNextMidnight());
+    };
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const onSaveName = () => {
     const trimmed = nameDraft.trim();
@@ -242,7 +279,7 @@ function createStyles(colors: ThemeColors) {
     fontSize: 17,
     color: colors.text,
     textAlign: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   nameCard: {
     width: '100%',
@@ -297,7 +334,7 @@ function createStyles(colors: ThemeColors) {
   },
   actions: {
     width: '100%',
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     gap: spacing.sm,
   },
   button: {

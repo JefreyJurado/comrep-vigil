@@ -77,9 +77,9 @@ export const benedictionPart: VigilPart = {
           speaker: 'Presider',
           latinPhrases: [
             'Deus, qui nobis sub sacraménto mirábili passiónis tuæ memóriam reliquísti,',
-            'tríbue, quǽsumus, ita nos Córporis et Sánguinis tui sacra mystéria venerári,',
+            'tríbue, quæsumus, ita nos Córporis et Sánguinis tui sacra mystéria venerári,',
             'ut redemptiónis tuæ fructum in nobis iúgiter sentiámus.',
-            'Qui vivis et regnas cum Deo Patre in unitáte Spíritus Sancti, Deus, per ómnia sǽcula sæculórum.',
+            'Qui vivis et regnas cum Deo Patre in unitáte Spíritus Sancti, Deus, per ómnia sæcula sæculórum.',
           ],
           phrases: [
             'O God, in this wonderful Sacrament You have left us a lasting memorial of Your Passion,',

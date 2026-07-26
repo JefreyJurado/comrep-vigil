@@ -240,20 +240,22 @@ function createStyles(colors: ThemeColors) {
     textSizePill: {
       flex: 1,
       alignItems: 'center',
+      justifyContent: 'center',
       paddingVertical: spacing.sm,
       borderRadius: radii.sm,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.background,
     },
-    textSizePillSelected: {
-      backgroundColor: colors.accent,
-      borderColor: colors.accent,
-    },
     textSizePillText: {
       fontFamily: fonts.bodySemiBold,
       fontSize: 15,
       color: colors.text,
+      textAlign: 'center',
+    },
+    textSizePillSelected: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
     },
     textSizePillTextSelected: {
       color: colors.onAccent,
