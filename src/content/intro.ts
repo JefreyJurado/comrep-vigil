@@ -57,13 +57,13 @@ export const introPart: VigilPart = {
           type: 'credit',
           text: 'Disclaimer: The editors of this book have attempted to give proper credit to all sources used in the text and illustrations. Any miscredit or lack of credit is unintended and will be corrected in the next edition.',
         },
-        { type: 'credit', text: 'Communion of Reparation — All Night Vigil Prayer Guide, First Revised Edition' },
         {
           type: 'credit',
-          text: 'Copyright © MMXXIV, Secular Male Institute of the Two Hearts. 45 Brgy. Imok, 4012 Calauan, Laguna, Philippines. Printed in the Philippines.',
+          text: 'Communion of Reparation — All Night Vigil Prayer Guide, First Revised Edition\nCopyright © MMXXIV, Secular Male Institute of the Two Hearts. 45 Brgy. Imok, 4012 Calauan, Laguna, Philippines. Printed in the Philippines.',
         },
         {
           type: 'credit',
+          bold: true,
           text: 'This app is offered freely for personal and community devotional use and is not for commercial sale or distribution. All excerpted materials remain the property of their respective copyright holders, as credited above.',
         },
         { type: 'label', text: 'Special Thanks' },
@@ -77,6 +77,10 @@ export const introPart: VigilPart = {
       id: 'foreword',
       title: 'Foreword',
       blocks: [
+        {
+          type: 'note',
+          text: 'A note on this vigil’s nature: this is a private devotional exercise in honor of the Sacred Heart of Jesus and the Immaculate Heart of Mary, not a liturgy of the Church. It does not substitute for the Holy Mass, the Sacraments, or the Church’s official liturgical books. It is advised to be prayed as a group, with a priest present for the Sacrament of Confession.',
+        },
         {
           type: 'paragraph',
           text: 'We are pleased to present this updated edition of the prayer book which we are using in our well cherished devotion of First Friday - First Saturday Communion of Reparation Vigil.',

@@ -133,20 +133,31 @@ function DialogueLineText({ line, keyId, styles }: { line: DialogueLine; keyId: 
   );
 }
 
-function CreditText({ text, linkText, styles }: { text: string; linkText?: string; styles: Styles }) {
+function CreditText({
+  text,
+  linkText,
+  bold,
+  styles,
+}: {
+  text: string;
+  linkText?: string;
+  bold?: boolean;
+  styles: Styles;
+}) {
+  const textStyle = bold ? styles.creditTextBold : styles.creditText;
   if (linkText && text.includes(linkText)) {
     const idx = text.indexOf(linkText);
     const before = text.slice(0, idx);
     const after = text.slice(idx + linkText.length);
     return (
-      <Text style={styles.creditText}>
+      <Text style={textStyle}>
         {before}
         <Text style={styles.creditLink}>{linkText}</Text>
         {after}
       </Text>
     );
   }
-  return <Text style={styles.creditText}>{text}</Text>;
+  return <Text style={textStyle}>{text}</Text>;
 }
 
 function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors }) {
@@ -276,7 +287,7 @@ function Block({ block, styles, colors }: { block: ContentBlock; styles: Styles;
       );
 
     case 'credit':
-      return <CreditText text={block.text} linkText={block.linkText} styles={styles} />;
+      return <CreditText text={block.text} linkText={block.linkText} bold={block.bold} styles={styles} />;
 
     default:
       return null;
@@ -530,6 +541,12 @@ function createStyles(scale: number, colors: ThemeColors) {
     },
     creditText: {
       fontFamily: fonts.body,
+      fontSize: f(14, scale),
+      lineHeight: f(20, scale),
+      color: colors.textMuted,
+    },
+    creditTextBold: {
+      fontFamily: fonts.bodyBold,
       fontSize: f(14, scale),
       lineHeight: f(20, scale),
       color: colors.textMuted,

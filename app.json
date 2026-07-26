@@ -2,7 +2,7 @@
   "expo": {
     "name": "ComRep Vigil",
     "slug": "comrep-vigil",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -49,7 +49,8 @@
         }
       ],
       "expo-notifications",
-      "./plugins/withReleaseSigning.js"
+      "./plugins/withReleaseSigning.js",
+      "@sentry/react-native"
     ]
   }
 }

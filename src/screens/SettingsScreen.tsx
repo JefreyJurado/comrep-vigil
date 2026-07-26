@@ -104,6 +104,17 @@ export function SettingsScreen({ navigation }: Props) {
     navigation.navigate('Vigil', { startIndex: findStepIndex('acknowledgements') });
   };
 
+  const onSendFeedback = () => {
+    const subject = encodeURIComponent('ComRep Vigil Feedback');
+    const body = encodeURIComponent(`\n\n—\nVersion ${appConfig.expo.version}`);
+    Linking.openURL(`mailto:apollojudge0@gmail.com?subject=${subject}&body=${body}`).catch(() => {
+      Alert.alert(
+        'No Email App Found',
+        'Please send your feedback directly to apollojudge0@gmail.com.'
+      );
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -170,6 +181,11 @@ export function SettingsScreen({ navigation }: Props) {
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onViewAcknowledgements}>
           <Text style={styles.rowLabel}>Acknowledgements</Text>
           <Text style={styles.rowHint}>Sources, credits, and copyright information.</Text>
+        </Pressable>
+
+        <Pressable style={[styles.card, styles.pressableRow]} onPress={onSendFeedback}>
+          <Text style={styles.rowLabel}>Send Feedback</Text>
+          <Text style={styles.rowHint}>Found a bug or have a suggestion? Let us know by email.</Text>
         </Pressable>
 
         <View style={styles.card}>

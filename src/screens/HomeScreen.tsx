@@ -20,6 +20,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { loadProgress } from '../utils/progress';
 import { loadUserName, saveUserName } from '../utils/profile';
 import { getLiturgicalDayLabel } from '../utils/liturgicalCalendar';
+import { msUntilNextMidnight } from '../utils/dateTiming';
 import { flatSteps } from '../content';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -40,13 +41,6 @@ function computeDateLabels() {
       year: 'numeric',
     }),
   };
-}
-
-/** Milliseconds from now until the next local midnight. */
-function msUntilNextMidnight(): number {
-  const now = new Date();
-  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-  return nextMidnight.getTime() - now.getTime();
 }
 
 export function HomeScreen({ navigation }: Props) {

@@ -45,8 +45,10 @@ export type ContentBlock =
   | { type: 'note'; text: string }
   /** Small-print acknowledgement/citation line. If linkText is a substring of
    * text, that substring renders italic + blue (matching the source PDF's
-   * hyperlink styling), the rest renders as plain small print. */
-  | { type: 'credit'; text: string; linkText?: string };
+   * hyperlink styling), the rest renders as plain small print. `bold` is for
+   * a standalone statement (e.g. usage rights) that needs to stand out from
+   * the surrounding citations. */
+  | { type: 'credit'; text: string; linkText?: string; bold?: boolean };
 
 export interface VigilSection {
   id: string;

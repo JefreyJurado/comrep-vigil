@@ -14,6 +14,9 @@ import { HymnScreen } from './src/screens/HymnScreen';
 import { fonts } from './src/theme/theme';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { refreshVigilReminderIfNeeded } from './src/utils/reminders';
+import { initErrorReporting, wrapWithErrorReporting } from './src/utils/errorReporting';
+
+initErrorReporting();
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -54,7 +57,7 @@ function AppNavigator() {
   );
 }
 
-export default function App() {
+function App() {
   // The expo-font config plugin (app.json) embeds these natively for iOS/Android
   // builds, where text can reference the family names directly with no loading
   // gap. The web target has no such native embedding step, so useFonts here
@@ -84,3 +87,5 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+export default wrapWithErrorReporting(App);
