@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,8 +12,11 @@ import { flatSteps } from '../content';
 import { SectionRenderer } from '../components/SectionRenderer';
 import { saveProgress } from '../utils/progress';
 import { loadKeepScreenAwake, loadTextSize, TEXT_SIZE_SCALES } from '../utils/settings';
+import { loadIntention, clearIntention } from '../utils/intention';
+import { loadExcludedPartIds } from '../utils/vigilPlan';
 
 const KEEP_AWAKE_TAG = 'vigil-screen';
+const FADE_DURATION_MS = 220;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Vigil'>;
 
@@ -22,7 +25,10 @@ export function VigilScreen({ route, navigation }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [index, setIndex] = useState(route.params.startIndex);
   const [textScale, setTextScale] = useState(TEXT_SIZE_SCALES.medium);
+  const [intention, setIntention] = useState<string | null>(null);
+  const [excludedPartIds, setExcludedPartIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<ScrollView>(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const step = flatSteps[index];
   const isFirst = index === 0;
   const isLast = index === flatSteps.length - 1;
@@ -32,6 +38,14 @@ export function VigilScreen({ route, navigation }: Props) {
       let active = true;
       loadTextSize().then((size) => {
         if (active) setTextScale(TEXT_SIZE_SCALES[size]);
+      });
+      loadIntention().then((stored) => {
+        if (active) setIntention(stored);
+      });
+      // Reloaded on every focus (not just mount) so toggling a part off in
+      // Settings and coming back takes effect on the very next Next/Prev tap.
+      loadExcludedPartIds().then((ids) => {
+        if (active) setExcludedPartIds(new Set(ids));
       });
       return () => {
         active = false;
@@ -64,8 +78,14 @@ export function VigilScreen({ route, navigation }: Props) {
         </View>
       ),
     });
-    saveProgress(index);
+    saveProgress(step.section.id);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: FADE_DURATION_MS,
+      useNativeDriver: false,
+    }).start();
   }, [index, colors]);
 
   useEffect(() => {
@@ -79,8 +99,22 @@ export function VigilScreen({ route, navigation }: Props) {
     };
   }, []);
 
-  const goNext = () => setIndex((i) => Math.min(i + 1, flatSteps.length - 1));
-  const goPrev = () => setIndex((i) => Math.max(i - 1, 0));
+  // Steps whose part was toggled off in Settings ("Shorten Tonight's Vigil")
+  // are skipped over here rather than removed from flatSteps, so the
+  // progress bar/step numbers, saved section-id progress, and Table of
+  // Contents lookups all keep referring to one stable, canonical list.
+  const goNext = () =>
+    setIndex((i) => {
+      let next = Math.min(i + 1, flatSteps.length - 1);
+      while (next < flatSteps.length - 1 && excludedPartIds.has(flatSteps[next].partId)) next++;
+      return next;
+    });
+  const goPrev = () =>
+    setIndex((i) => {
+      let prev = Math.max(i - 1, 0);
+      while (prev > 0 && excludedPartIds.has(flatSteps[prev].partId)) prev--;
+      return prev;
+    });
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
@@ -88,7 +122,9 @@ export function VigilScreen({ route, navigation }: Props) {
         <View style={[styles.progressFill, { width: `${((index + 1) / flatSteps.length) * 100}%` }]} />
       </View>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
-        <SectionRenderer section={step.section} scale={textScale} />
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <SectionRenderer section={step.section} scale={textScale} intention={intention} />
+        </Animated.View>
       </ScrollView>
       <View style={styles.footer}>
         <Pressable
@@ -101,7 +137,10 @@ export function VigilScreen({ route, navigation }: Props) {
         </Pressable>
         {isLast ? (
           <Pressable
-            onPress={() => navigation.popToTop()}
+            onPress={() => {
+              clearIntention();
+              navigation.popToTop();
+            }}
             style={[styles.finishButton, styles.primaryButton, styles.shadow]}
           >
             <Text style={styles.primaryButtonText}>Finish</Text>

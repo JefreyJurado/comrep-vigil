@@ -24,7 +24,7 @@ export async function loadReminderEnabled(): Promise<boolean> {
   }
 }
 
-function getFirstFridayOfMonth(year: number, monthIndex: number): Date {
+export function getFirstFridayOfMonth(year: number, monthIndex: number): Date {
   const d = new Date(year, monthIndex, 1);
   const daysUntilFriday = (5 - d.getDay() + 7) % 7;
   d.setDate(1 + daysUntilFriday);

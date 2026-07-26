@@ -4,4 +4,6 @@ export type RootStackParamList = {
   Vigil: { startIndex: number };
   Settings: undefined;
   Hymn: undefined;
+  Calendar: undefined;
+  Confession: undefined;
 };

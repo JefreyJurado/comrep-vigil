@@ -1,19 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const KEY = 'comrep-vigil:last-step-index';
+const KEY = 'comrep-vigil:last-section-id';
 
-export async function saveProgress(index: number): Promise<void> {
+export async function saveProgress(sectionId: string): Promise<void> {
   try {
-    await AsyncStorage.setItem(KEY, String(index));
+    await AsyncStorage.setItem(KEY, sectionId);
   } catch {
     // non-fatal
   }
 }
 
-export async function loadProgress(): Promise<number | null> {
+export async function loadProgress(): Promise<string | null> {
   try {
-    const value = await AsyncStorage.getItem(KEY);
-    return value ? Number(value) : null;
+    return await AsyncStorage.getItem(KEY);
   } catch {
     return null;
   }

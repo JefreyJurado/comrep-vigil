@@ -28,6 +28,7 @@ export const selfOfferingPart: VigilPart = {
             'through the merits of Jesus Christ, Your Son.',
           ],
         },
+        { type: 'intention' },
         {
           type: 'dialogue',
           lines: [

@@ -19,6 +19,11 @@ export const introPart: VigilPart = {
         },
         {
           type: 'credit',
+          text: 'Icon by Gan Khoon Lay from www.flaticon.com',
+          linkText: 'www.flaticon.com',
+        },
+        {
+          type: 'credit',
           text: 'Excerpts from Acts of Piety: Radiant Heart Prayer, Secular Male Institute of the Two Hearts, © 2017.',
         },
         {

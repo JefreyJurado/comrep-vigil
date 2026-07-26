@@ -19,9 +19,12 @@ import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/th
 import { useTheme } from '../theme/ThemeContext';
 import { loadProgress } from '../utils/progress';
 import { loadUserName, saveUserName } from '../utils/profile';
+import { loadIntention, saveIntention } from '../utils/intention';
+import { getUpcomingVigils } from '../utils/personalSchedule';
+import { getLastConfession, type ConfessionEntry } from '../utils/confessionLog';
 import { getLiturgicalDayLabel } from '../utils/liturgicalCalendar';
 import { msUntilNextMidnight } from '../utils/dateTiming';
-import { flatSteps } from '../content';
+import { flatSteps, findStepIndex } from '../content';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -30,6 +33,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 // editor/tool pass. Used to keep "of Mary" glued together so "Mary" never
 // wraps alone onto its own line.
 const NBSP = String.fromCharCode(160);
+
+function formatConfessionSummary(isoDate: string): string {
+  const parsed = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return isoDate;
+  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatWithYear(date: Date): string {
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 function computeDateLabels() {
   return {
@@ -50,7 +67,13 @@ export function HomeScreen({ navigation }: Props) {
   const [name, setName] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [intentionDraft, setIntentionDraft] = useState('');
+  const [lastConfession, setLastConfession] = useState<ConfessionEntry | null>(null);
   const insets = useSafeAreaInsets();
+  const today = useMemo(() => new Date(), []);
+  const nextVigil = useMemo(() => getUpcomingVigils(1, today)[0], [today]);
+  const isVigilNight =
+    !!nextVigil && (isSameDay(nextVigil.friday, today) || isSameDay(nextVigil.saturday, today));
   // The date can roll over while the app sits open or backgrounded overnight,
   // so these are refreshed on focus and app-foreground below rather than
   // computed once and cached for the component's lifetime.
@@ -60,15 +83,22 @@ export function HomeScreen({ navigation }: Props) {
     useCallback(() => {
       let active = true;
       setDateLabels(computeDateLabels());
-      loadProgress().then((index) => {
+      loadProgress().then((sectionId) => {
         if (!active) return;
-        const isResumable = index !== null && index > 0 && index < flatSteps.length - 1;
+        const index = sectionId !== null ? findStepIndex(sectionId) : -1;
+        const isResumable = index > 0 && index < flatSteps.length - 1;
         setResumeIndex(isResumable ? index : null);
       });
       loadUserName().then((storedName) => {
         if (!active) return;
         setName(storedName);
         if (!storedName) setEditingName(true);
+      });
+      loadIntention().then((stored) => {
+        if (active) setIntentionDraft(stored ?? '');
+      });
+      getLastConfession().then((entry) => {
+        if (active) setLastConfession(entry);
       });
       return () => {
         active = false;
@@ -113,13 +143,13 @@ export function HomeScreen({ navigation }: Props) {
     setEditingName(true);
   };
 
+  const onBlurIntention = () => {
+    saveIntention(intentionDraft);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.header, { top: insets.top + spacing.sm }]}>
-        <View style={styles.headerText}>
-          <Text style={styles.dateLine}>{todayLabel}</Text>
-          <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
-        </View>
         <View style={styles.headerIcons}>
           <Pressable
             style={styles.headerIconButton}
@@ -127,7 +157,27 @@ export function HomeScreen({ navigation }: Props) {
             hitSlop={12}
             accessibilityLabel="Contents"
           >
-            <Ionicons name="book-outline" size={22} color={colors.textMuted} />
+            <Ionicons name="book-outline" size={20} color={colors.textMuted} />
+          </Pressable>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => navigation.navigate('Calendar')}
+            hitSlop={12}
+            accessibilityLabel="Calendar"
+          >
+            <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
+          </Pressable>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => navigation.navigate('Confession')}
+            hitSlop={12}
+            accessibilityLabel="Confession Log"
+          >
+            <Image
+              source={require('../../assets/icons/confession.png')}
+              style={[styles.confessionIcon, { tintColor: colors.textMuted }]}
+              resizeMode="contain"
+            />
           </Pressable>
           <Pressable
             style={styles.headerIconButton}
@@ -135,7 +185,7 @@ export function HomeScreen({ navigation }: Props) {
             hitSlop={12}
             accessibilityLabel="Settings"
           >
-            <Ionicons name="settings-outline" size={22} color={colors.textMuted} />
+            <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
           </Pressable>
         </View>
       </View>
@@ -154,6 +204,22 @@ export function HomeScreen({ navigation }: Props) {
         <Text style={styles.tagline}>
           {`First Friday – First Saturday Devotion in Honor of the Sacred Heart of Jesus and the Immaculate Heart${NBSP}of${NBSP}Mary`}
         </Text>
+
+        {isVigilNight ? (
+          <Text style={styles.vigilCount}>Tonight is the ComRep Vigil</Text>
+        ) : nextVigil ? (
+          <Text style={styles.vigilCount}>
+            Next vigil: {formatWithYear(nextVigil.friday)} – {formatWithYear(nextVigil.saturday)}
+          </Text>
+        ) : null}
+
+        {lastConfession && (
+          <Pressable onPress={() => navigation.navigate('Confession')} hitSlop={4}>
+            <Text style={styles.vigilCount}>
+              Last confession: {formatConfessionSummary(lastConfession.date)} with {lastConfession.priest}
+            </Text>
+          </Pressable>
+        )}
 
         {editingName ? (
           <View style={styles.nameCard}>
@@ -184,6 +250,19 @@ export function HomeScreen({ navigation }: Props) {
           )
         )}
 
+        <View style={styles.intentionCard}>
+          <Text style={styles.intentionCardLabel}>Tonight’s Intention</Text>
+          <TextInput
+            style={styles.intentionInput}
+            value={intentionDraft}
+            onChangeText={setIntentionDraft}
+            onBlur={onBlurIntention}
+            placeholder="Who or what are you praying for tonight? (optional)"
+            placeholderTextColor={colors.textMuted}
+            multiline
+          />
+        </View>
+
         <View style={styles.actions}>
           {resumeIndex !== null && (
             <Pressable
@@ -208,6 +287,11 @@ export function HomeScreen({ navigation }: Props) {
             </Text>
           </Pressable>
         </View>
+
+        <View style={styles.footerDate}>
+          <Text style={styles.dateLine}>{todayLabel}</Text>
+          <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -230,42 +314,44 @@ function createStyles(colors: ThemeColors) {
   },
   header: {
     position: 'absolute',
-    left: spacing.lg,
     right: spacing.lg,
     zIndex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerText: {
-    flex: 1,
-    paddingRight: spacing.sm,
+    justifyContent: 'flex-end',
   },
   headerIcons: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     flexShrink: 0,
   },
   headerIconButton: {
-    padding: spacing.xs,
+    padding: 2,
+  },
+  confessionIcon: {
+    width: 20,
+    height: 20,
   },
   logo: {
     width: 140,
     height: 100,
     marginBottom: spacing.lg,
   },
+  footerDate: {
+    marginTop: spacing.lg,
+    alignItems: 'center',
+  },
   dateLine: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
     color: colors.text,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   liturgicalDay: {
     fontFamily: fonts.italic,
     fontSize: 12,
     letterSpacing: 0.2,
     color: colors.gold,
-    textAlign: 'left',
+    textAlign: 'center',
     lineHeight: 16,
   },
   greeting: {
@@ -274,6 +360,13 @@ function createStyles(colors: ThemeColors) {
     color: colors.text,
     textAlign: 'center',
     marginTop: spacing.lg,
+  },
+  vigilCount: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.gold,
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   nameCard: {
     width: '100%',
@@ -290,6 +383,29 @@ function createStyles(colors: ThemeColors) {
     fontFamily: fonts.bodySemiBold,
     fontSize: 16,
     color: colors.text,
+  },
+  intentionCard: {
+    width: '100%',
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    gap: spacing.xs,
+  },
+  intentionCardLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  intentionInput: {
+    width: '100%',
+    minHeight: 44,
+    fontFamily: fonts.italic,
+    fontSize: 16,
+    color: colors.text,
+    textAlignVertical: 'top',
   },
   nameInput: {
     width: '100%',

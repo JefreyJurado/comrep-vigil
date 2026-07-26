@@ -43,6 +43,9 @@ export type ContentBlock =
   | { type: 'list'; items: string[]; ordered?: boolean }
   /** Editorial / practical note, rendered distinctly from rubrics */
   | { type: 'note'; text: string }
+  /** Renders the worshipper's own saved intention for tonight, if they set
+   * one on the Home screen. Renders nothing when no intention is saved. */
+  | { type: 'intention' }
   /** Small-print acknowledgement/citation line. If linkText is a substring of
    * text, that substring renders italic + blue (matching the source PDF's
    * hyperlink styling), the rest renders as plain small print. `bold` is for

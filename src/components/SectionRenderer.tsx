@@ -179,7 +179,17 @@ function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors 
   );
 }
 
-function Block({ block, styles, colors }: { block: ContentBlock; styles: Styles; colors: ThemeColors }) {
+function Block({
+  block,
+  styles,
+  colors,
+  intention,
+}: {
+  block: ContentBlock;
+  styles: Styles;
+  colors: ThemeColors;
+  intention: string | null;
+}) {
   switch (block.type) {
     case 'label':
       return (
@@ -289,12 +299,31 @@ function Block({ block, styles, colors }: { block: ContentBlock; styles: Styles;
     case 'credit':
       return <CreditText text={block.text} linkText={block.linkText} bold={block.bold} styles={styles} />;
 
+    case 'intention':
+      if (!intention) return null;
+      return (
+        <View style={styles.intentionBlock}>
+          <Text style={styles.intentionLabel}>MY INTENTION TONIGHT</Text>
+          <Text style={styles.intentionText}>{intention}</Text>
+        </View>
+      );
+
     default:
       return null;
   }
 }
 
-export function SectionRenderer({ section, scale = 1 }: { section: VigilSection; scale?: number }) {
+export function SectionRenderer({
+  section,
+  scale = 1,
+  intention = null,
+}: {
+  section: VigilSection;
+  scale?: number;
+  /** The worshipper's own saved intention for tonight, rendered wherever the
+   * section has an `intention` content block. Null when none is saved. */
+  intention?: string | null;
+}) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
 
@@ -310,7 +339,7 @@ export function SectionRenderer({ section, scale = 1 }: { section: VigilSection;
       ) : null}
       <View style={styles.blocks}>
         {section.blocks.map((block, i) => (
-          <Block key={i} block={block} styles={styles} colors={colors} />
+          <Block key={i} block={block} styles={styles} colors={colors} intention={intention} />
         ))}
       </View>
     </View>
@@ -538,6 +567,27 @@ function createStyles(scale: number, colors: ThemeColors) {
       fontSize: f(16, scale),
       color: colors.textMuted,
       lineHeight: f(22, scale),
+    },
+    intentionBlock: {
+      borderWidth: 1,
+      borderColor: colors.gold,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      gap: spacing.xs,
+      alignItems: 'center',
+    },
+    intentionLabel: {
+      fontFamily: fonts.displaySemiBold,
+      fontSize: f(13, scale),
+      letterSpacing: 1.4,
+      color: colors.gold,
+    },
+    intentionText: {
+      fontFamily: fonts.italicMedium,
+      fontSize: f(18, scale),
+      lineHeight: f(25, scale),
+      color: colors.text,
+      textAlign: 'center',
     },
     creditText: {
       fontFamily: fonts.body,

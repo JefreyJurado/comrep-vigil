@@ -11,6 +11,8 @@ import { TableOfContentsScreen } from './src/screens/TableOfContentsScreen';
 import { VigilScreen } from './src/screens/VigilScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { HymnScreen } from './src/screens/HymnScreen';
+import { CalendarScreen } from './src/screens/CalendarScreen';
+import { ConfessionScreen } from './src/screens/ConfessionScreen';
 import { fonts } from './src/theme/theme';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { refreshVigilReminderIfNeeded } from './src/utils/reminders';
@@ -51,6 +53,8 @@ function AppNavigator() {
         <Stack.Screen name="Vigil" component={VigilScreen} options={{ title: 'Vigil' }} />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
         <Stack.Screen name="Hymn" component={HymnScreen} options={{ title: 'Hymn' }} />
+        <Stack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Calendar' }} />
+        <Stack.Screen name="Confession" component={ConfessionScreen} options={{ title: 'Confession' }} />
       </Stack.Navigator>
       <StatusBar style={mode === 'night' ? 'light' : 'dark'} />
     </NavigationContainer>

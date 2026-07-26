@@ -18,6 +18,7 @@ import {
   type TextSize,
 } from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
+import { OPTIONAL_PARTS, loadExcludedPartIds, saveExcludedPartIds } from '../utils/vigilPlan';
 import { findStepIndex } from '../content';
 import appConfig from '../../app.json';
 
@@ -29,6 +30,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [keepAwake, setKeepAwake] = useState(false);
   const [reminder, setReminder] = useState(false);
   const [textSize, setTextSize] = useState<TextSize>('medium');
+  const [excludedPartIds, setExcludedPartIds] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,6 +44,9 @@ export function SettingsScreen({ navigation }: Props) {
       loadTextSize().then((value) => {
         if (active) setTextSize(value);
       });
+      loadExcludedPartIds().then((ids) => {
+        if (active) setExcludedPartIds(ids);
+      });
       return () => {
         active = false;
       };
@@ -51,6 +56,12 @@ export function SettingsScreen({ navigation }: Props) {
   const onSelectTextSize = (size: TextSize) => {
     setTextSize(size);
     saveTextSize(size);
+  };
+
+  const onToggleSkipPart = (partId: string, skip: boolean) => {
+    const next = skip ? [...excludedPartIds, partId] : excludedPartIds.filter((id) => id !== partId);
+    setExcludedPartIds(next);
+    saveExcludedPartIds(next);
   };
 
   const onToggleKeepAwake = (value: boolean) => {
@@ -161,6 +172,27 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.rowLabel}>Shorten Tonight’s Vigil</Text>
+          <Text style={styles.rowHint}>
+            Skip a part for tonight’s walkthrough — Next/Prev will jump past it. It stays in Contents if
+            you want to look something up.
+          </Text>
+          {OPTIONAL_PARTS.map((part) => (
+            <View key={part.id} style={[styles.row, styles.optionalPartRow]}>
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>{part.label}</Text>
+                <Text style={styles.rowHint}>{part.hint}</Text>
+              </View>
+              <ThemedSwitch
+                value={excludedPartIds.includes(part.id)}
+                onValueChange={(value) => onToggleSkipPart(part.id, value)}
+                colors={colors}
+              />
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.card}>
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={styles.rowLabel}>Vigil Reminder</Text>
@@ -233,6 +265,12 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: spacing.md,
+    },
+    optionalPartRow: {
+      marginTop: spacing.sm,
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
     },
     rowText: {
       flex: 1,
