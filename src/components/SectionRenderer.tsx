@@ -14,6 +14,19 @@ import { useTheme } from '../theme/ThemeContext';
 // which read plain verses, not a response) — stays regular weight.
 const BOLD_TEXT_SPEAKERS = new Set(['R']);
 
+// Block types substantial enough to be worth bookmarking on their own —
+// excludes structural/editorial blocks (labels, rubrics, hymn cues, notes,
+// credits) and the worshipper's own live intention, which isn't shared
+// content to begin with.
+const BOOKMARKABLE_TYPES = new Set<ContentBlock['type']>([
+  'paragraph',
+  'prayer',
+  'reading',
+  'dialogue',
+  'list',
+  'bilingual',
+]);
+
 type Styles = ReturnType<typeof createStyles>;
 
 interface QuoteSegment {
@@ -179,7 +192,7 @@ function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors 
   );
 }
 
-function Block({
+function BlockContent({
   block,
   styles,
   colors,
@@ -313,16 +326,56 @@ function Block({
   }
 }
 
+function Block({
+  block,
+  styles,
+  colors,
+  intention,
+  bookmarked = false,
+  onToggleBookmark,
+}: {
+  block: ContentBlock;
+  styles: Styles;
+  colors: ThemeColors;
+  intention: string | null;
+  bookmarked?: boolean;
+  onToggleBookmark?: () => void;
+}) {
+  const content = <BlockContent block={block} styles={styles} colors={colors} intention={intention} />;
+  if (!onToggleBookmark || !BOOKMARKABLE_TYPES.has(block.type)) return content;
+
+  return (
+    <View>
+      <Pressable
+        onPress={onToggleBookmark}
+        hitSlop={8}
+        style={styles.bookmarkButton}
+        accessibilityRole="button"
+        accessibilityLabel={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+      >
+        <Ionicons name={bookmarked ? 'star' : 'star-outline'} size={16} color={bookmarked ? colors.gold : colors.textMuted} />
+      </Pressable>
+      {content}
+    </View>
+  );
+}
+
 export function SectionRenderer({
   section,
   scale = 1,
   intention = null,
+  bookmarkedKeys,
+  onToggleBookmark,
 }: {
   section: VigilSection;
   scale?: number;
   /** The worshipper's own saved intention for tonight, rendered wherever the
    * section has an `intention` content block. Null when none is saved. */
   intention?: string | null;
+  /** Keys from bookmarkKey(sectionId, blockIndex), for the star toggle's checked state. */
+  bookmarkedKeys?: Set<string>;
+  /** Omit entirely (e.g. for a read-only render) to hide the bookmark star. */
+  onToggleBookmark?: (sectionId: string, blockIndex: number) => void;
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
@@ -339,11 +392,26 @@ export function SectionRenderer({
       ) : null}
       <View style={styles.blocks}>
         {section.blocks.map((block, i) => (
-          <Block key={i} block={block} styles={styles} colors={colors} intention={intention} />
+          <Block
+            key={i}
+            block={block}
+            styles={styles}
+            colors={colors}
+            intention={intention}
+            bookmarked={bookmarkedKeys?.has(`${section.id}:${i}`) ?? false}
+            onToggleBookmark={onToggleBookmark ? () => onToggleBookmark(section.id, i) : undefined}
+          />
         ))}
       </View>
     </View>
   );
+}
+
+/** Renders a single content block in isolation (e.g. a Bookmarks list entry), with no bookmark star of its own. */
+export function StandaloneBlock({ block, scale = 1 }: { block: ContentBlock; scale?: number }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
+  return <BlockContent block={block} styles={styles} colors={colors} intention={null} />;
 }
 
 /** Scales font size/line height only — spacing, colors, and borders stay fixed regardless of text-size preference. */
@@ -397,6 +465,11 @@ function createStyles(scale: number, colors: ThemeColors) {
     },
     blocks: {
       gap: spacing.md,
+    },
+    bookmarkButton: {
+      alignSelf: 'flex-end',
+      padding: spacing.xs,
+      marginBottom: -spacing.xs,
     },
     label: {
       // Sub-headings like "SPIRITUAL DISPOSITION" / "READING" — bigger than

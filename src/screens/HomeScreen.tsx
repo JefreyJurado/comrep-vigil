@@ -25,7 +25,10 @@ import { getUpcomingVigils } from '../utils/personalSchedule';
 import { getLastConfession, type ConfessionEntry } from '../utils/confessionLog';
 import { getLiturgicalDayLabel } from '../utils/liturgicalCalendar';
 import { msUntilNextMidnight } from '../utils/dateTiming';
+import { loadCurrentMonthOffice } from '../utils/monthlyOffice';
+import { loadVigilCompletions, computeStreak } from '../utils/vigilStats';
 import { flatSteps, findStepIndex } from '../content';
+import { officeChoirs } from '../content/nineOffices';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -70,6 +73,8 @@ export function HomeScreen({ navigation }: Props) {
   const [nameDraft, setNameDraft] = useState('');
   const [intentionDraft, setIntentionDraft] = useState('');
   const [lastConfession, setLastConfession] = useState<ConfessionEntry | null>(null);
+  const [monthlyOfficeNumber, setMonthlyOfficeNumber] = useState<number | null>(null);
+  const [vigilCompletions, setVigilCompletions] = useState<string[]>([]);
   const insets = useSafeAreaInsets();
   const today = useMemo(() => new Date(), []);
   const nextVigil = useMemo(() => getUpcomingVigils(1, today)[0], [today]);
@@ -100,6 +105,12 @@ export function HomeScreen({ navigation }: Props) {
       });
       getLastConfession().then((entry) => {
         if (active) setLastConfession(entry);
+      });
+      loadCurrentMonthOffice().then((state) => {
+        if (active) setMonthlyOfficeNumber(state?.officeNumber ?? null);
+      });
+      loadVigilCompletions().then((dates) => {
+        if (active) setVigilCompletions(dates);
       });
       return () => {
         active = false;
@@ -146,6 +157,14 @@ export function HomeScreen({ navigation }: Props) {
 
   const onBlurIntention = () => {
     saveIntention(intentionDraft);
+  };
+
+  const monthlyOffice = monthlyOfficeNumber ? officeChoirs.find((o) => o.number === monthlyOfficeNumber) : null;
+  const vigilStreak = useMemo(() => computeStreak(vigilCompletions), [vigilCompletions]);
+
+  const onPressMonthlyOffice = () => {
+    if (!monthlyOffice) return;
+    navigation.navigate('Vigil', { startIndex: findStepIndex(`office-${monthlyOffice.number}`) });
   };
 
   return (
@@ -223,6 +242,14 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         )}
 
+        {monthlyOffice && (
+          <Pressable onPress={onPressMonthlyOffice} hitSlop={4}>
+            <Text style={styles.vigilCount}>
+              This month’s Office: {monthlyOffice.name} — Choir of {monthlyOffice.choir}
+            </Text>
+          </Pressable>
+        )}
+
         {editingName ? (
           <View style={styles.nameCard}>
             <Text style={styles.nameCardLabel}>What should we call you?</Text>
@@ -253,7 +280,12 @@ export function HomeScreen({ navigation }: Props) {
         )}
 
         <View style={styles.intentionCard}>
-          <Text style={styles.intentionCardLabel}>Tonight’s Intention</Text>
+          <View style={styles.intentionCardHeader}>
+            <Text style={styles.intentionCardLabel}>Tonight’s Intention</Text>
+            <Pressable onPress={() => navigation.navigate('IntentionHistory')} hitSlop={8}>
+              <Text style={styles.intentionHistoryLink}>Past Intentions</Text>
+            </Pressable>
+          </View>
           <TextInput
             style={styles.intentionInput}
             value={intentionDraft}
@@ -293,6 +325,12 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.footerDate}>
           <Text style={styles.dateLine}>{todayLabel}</Text>
           <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
+          {vigilCompletions.length > 0 && (
+            <Text style={styles.streakText}>
+              {vigilCompletions.length} {vigilCompletions.length === 1 ? 'vigil' : 'vigils'} prayed
+              {vigilStreak > 1 ? ` · ${vigilStreak}-month streak` : ''}
+            </Text>
+          )}
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -361,6 +399,13 @@ function createStyles(colors: ThemeColors) {
     textAlign: 'center',
     lineHeight: 16,
   },
+  streakText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
   greeting: {
     fontFamily: fonts.italicMedium,
     fontSize: 17,
@@ -401,10 +446,20 @@ function createStyles(colors: ThemeColors) {
     backgroundColor: colors.surface,
     gap: spacing.xs,
   },
+  intentionCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   intentionCardLabel: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 14,
     color: colors.textMuted,
+  },
+  intentionHistoryLink: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.accent,
   },
   intentionInput: {
     width: '100%',

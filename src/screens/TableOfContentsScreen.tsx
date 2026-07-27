@@ -9,6 +9,7 @@ import { contentMaxWidth, fonts, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { vigilParts, findStepIndex } from '../content';
 import { loadProgress } from '../utils/progress';
+import { loadBookmarks } from '../utils/bookmarks';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TableOfContents'>;
 
@@ -23,12 +24,16 @@ export function TableOfContentsScreen({ navigation }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState('');
   const [reachedIndex, setReachedIndex] = useState(-1);
+  const [bookmarkCount, setBookmarkCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       loadProgress().then((sectionId) => {
         if (active) setReachedIndex(sectionId !== null ? findStepIndex(sectionId) : -1);
+      });
+      loadBookmarks().then((bookmarks) => {
+        if (active) setBookmarkCount(bookmarks.length);
       });
       return () => {
         active = false;
@@ -55,6 +60,16 @@ export function TableOfContentsScreen({ navigation }: Props) {
         />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
+        <Pressable style={styles.bookmarksRow} onPress={() => navigation.navigate('Bookmarks')}>
+          <View style={styles.bookmarksRowLeft}>
+            <Ionicons name="star" size={18} color={colors.gold} />
+            <Text style={styles.bookmarksRowText}>Bookmarks</Text>
+          </View>
+          <View style={styles.bookmarksRowRight}>
+            {bookmarkCount > 0 ? <Text style={styles.bookmarksCount}>{bookmarkCount}</Text> : null}
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+        </Pressable>
         {filteredParts.map((part) => (
           <View key={part.id} style={styles.partBlock}>
             <Text style={styles.partTitle}>{part.title}</Text>
@@ -115,6 +130,37 @@ function createStyles(colors: ThemeColors) {
       alignSelf: 'center',
       padding: spacing.lg,
       gap: spacing.lg,
+    },
+    bookmarksRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+      padding: spacing.md,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    bookmarksRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    bookmarksRowRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    bookmarksRowText: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 17,
+      color: colors.text,
+    },
+    bookmarksCount: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 14,
+      color: colors.textMuted,
     },
     partBlock: {
       gap: spacing.xs,

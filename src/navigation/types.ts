@@ -6,4 +6,6 @@ export type RootStackParamList = {
   Hymn: undefined;
   Calendar: undefined;
   Confession: undefined;
+  IntentionHistory: undefined;
+  Bookmarks: undefined;
 };

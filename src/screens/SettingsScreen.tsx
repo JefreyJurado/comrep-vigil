@@ -19,7 +19,9 @@ import {
 } from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
 import { OPTIONAL_PARTS, loadExcludedPartIds, saveExcludedPartIds } from '../utils/vigilPlan';
+import { currentMonthKey, loadMonthlyOffice, saveMonthlyOffice } from '../utils/monthlyOffice';
 import { findStepIndex } from '../content';
+import { officeChoirs } from '../content/nineOffices';
 import appConfig from '../../app.json';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -31,6 +33,11 @@ export function SettingsScreen({ navigation }: Props) {
   const [reminder, setReminder] = useState(false);
   const [textSize, setTextSize] = useState<TextSize>('medium');
   const [excludedPartIds, setExcludedPartIds] = useState<string[]>([]);
+  const [monthlyOfficeNumber, setMonthlyOfficeNumber] = useState<number | null>(null);
+  const currentMonthLabel = useMemo(
+    () => new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -47,6 +54,9 @@ export function SettingsScreen({ navigation }: Props) {
       loadExcludedPartIds().then((ids) => {
         if (active) setExcludedPartIds(ids);
       });
+      loadMonthlyOffice().then((state) => {
+        if (active) setMonthlyOfficeNumber(state && state.monthKey === currentMonthKey() ? state.officeNumber : null);
+      });
       return () => {
         active = false;
       };
@@ -62,6 +72,11 @@ export function SettingsScreen({ navigation }: Props) {
     const next = skip ? [...excludedPartIds, partId] : excludedPartIds.filter((id) => id !== partId);
     setExcludedPartIds(next);
     saveExcludedPartIds(next);
+  };
+
+  const onSelectMonthlyOffice = (officeNumber: number) => {
+    setMonthlyOfficeNumber(officeNumber);
+    saveMonthlyOffice(officeNumber);
   };
 
   const onToggleKeepAwake = (value: boolean) => {
@@ -193,6 +208,28 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.rowLabel}>Monthly Office</Text>
+          <Text style={styles.rowHint}>
+            St. Margaret Mary’s traditional practice: take one office for {currentMonthLabel}, in union with its
+            choir of angels.
+          </Text>
+          <View style={styles.officeGrid}>
+            {officeChoirs.map(({ number, name }) => {
+              const selected = number === monthlyOfficeNumber;
+              return (
+                <Pressable
+                  key={number}
+                  style={[styles.officePill, selected && styles.officePillSelected]}
+                  onPress={() => onSelectMonthlyOffice(number)}
+                >
+                  <Text style={[styles.officePillText, selected && styles.officePillTextSelected]}>{name}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.card}>
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={styles.rowLabel}>Vigil Reminder</Text>
@@ -290,6 +327,32 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       gap: spacing.sm,
       marginTop: spacing.sm,
+    },
+    officeGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    officePill: {
+      paddingVertical: spacing.xs + 2,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    officePillText: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 14,
+      color: colors.text,
+    },
+    officePillSelected: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    officePillTextSelected: {
+      color: colors.onAccent,
     },
     textSizePill: {
       flex: 1,
