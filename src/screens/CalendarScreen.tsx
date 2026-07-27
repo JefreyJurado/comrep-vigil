@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -72,6 +72,7 @@ export function CalendarScreen({}: Props) {
   const today = useMemo(() => new Date(), []);
   const [viewMonth, setViewMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const scrollRef = useRef<ScrollView>(null);
 
   const nextVigil = useMemo(() => getUpcomingVigils(1, today)[0], [today]);
   const upcomingVigils = useMemo(() => getUpcomingVigils(6, today), [today]);
@@ -119,6 +120,16 @@ export function CalendarScreen({}: Props) {
     setAdding(true);
   };
 
+  useEffect(() => {
+    // autoFocus on the note field opens the keyboard before the ScrollView's
+    // native "scroll focused input into view" has a layout to measure, so it
+    // misses — scroll the form into view ourselves once it's rendered.
+    if (adding) {
+      const id = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+      return () => clearTimeout(id);
+    }
+  }, [adding]);
+
   const onAddEntry = async () => {
     if (!dateDraft.trim() || !noteDraft.trim()) return;
     const next = await addPersonalScheduleEntry(dateDraft.trim(), noteDraft.trim());
@@ -140,7 +151,7 @@ export function CalendarScreen({}: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {nextVigil ? (
           <View style={styles.nextVigilRow}>
             <MaterialCommunityIcons name="hands-pray" size={16} color={colors.gold} />

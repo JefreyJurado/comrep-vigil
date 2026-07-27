@@ -34,6 +34,14 @@ export async function saveMonthlyOffice(officeNumber: number): Promise<MonthlyOf
   return state;
 }
 
+export async function clearMonthlyOffice(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(MONTHLY_OFFICE_KEY);
+  } catch {
+    // non-fatal
+  }
+}
+
 /** The saved office, but only if it was chosen for the current calendar month. */
 export async function loadCurrentMonthOffice(): Promise<MonthlyOfficeState | null> {
   const state = await loadMonthlyOffice();

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AppState,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -155,8 +156,9 @@ export function HomeScreen({ navigation }: Props) {
     setEditingName(true);
   };
 
-  const onBlurIntention = () => {
+  const onSaveIntention = () => {
     saveIntention(intentionDraft);
+    Keyboard.dismiss();
   };
 
   const monthlyOffice = monthlyOfficeNumber ? officeChoirs.find((o) => o.number === monthlyOfficeNumber) : null;
@@ -290,11 +292,14 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.intentionInput}
             value={intentionDraft}
             onChangeText={setIntentionDraft}
-            onBlur={onBlurIntention}
+            onBlur={onSaveIntention}
             placeholder="Who or what are you praying for tonight? (optional)"
             placeholderTextColor={colors.textMuted}
             multiline
           />
+          <Pressable style={styles.intentionSaveButton} onPress={onSaveIntention}>
+            <Text style={styles.intentionSaveButtonText}>Save</Text>
+          </Pressable>
         </View>
 
         <View style={styles.actions}>
@@ -468,6 +473,18 @@ function createStyles(colors: ThemeColors) {
     fontSize: 16,
     color: colors.text,
     textAlignVertical: 'top',
+  },
+  intentionSaveButton: {
+    alignSelf: 'flex-end',
+    borderRadius: radii.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.accent,
+  },
+  intentionSaveButtonText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.onAccent,
   },
   nameInput: {
     width: '100%',

@@ -26,3 +26,11 @@ export async function recordVigilCompletion(date: string): Promise<string[]> {
   }
   return next;
 }
+
+export async function clearVigilCompletions(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(COMPLETIONS_KEY);
+  } catch {
+    // non-fatal
+  }
+}

@@ -8,6 +8,7 @@ import { ThemedSwitch } from '../components/ThemedSwitch';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { clearProgress } from '../utils/progress';
+import { clearVigilCompletions } from '../utils/vigilStats';
 import {
   loadKeepScreenAwake,
   saveKeepScreenAwake,
@@ -18,8 +19,7 @@ import {
   type TextSize,
 } from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
-import { OPTIONAL_PARTS, loadExcludedPartIds, saveExcludedPartIds } from '../utils/vigilPlan';
-import { currentMonthKey, loadMonthlyOffice, saveMonthlyOffice } from '../utils/monthlyOffice';
+import { currentMonthKey, loadMonthlyOffice, saveMonthlyOffice, clearMonthlyOffice } from '../utils/monthlyOffice';
 import { findStepIndex } from '../content';
 import { officeChoirs } from '../content/nineOffices';
 import appConfig from '../../app.json';
@@ -32,7 +32,6 @@ export function SettingsScreen({ navigation }: Props) {
   const [keepAwake, setKeepAwake] = useState(false);
   const [reminder, setReminder] = useState(false);
   const [textSize, setTextSize] = useState<TextSize>('medium');
-  const [excludedPartIds, setExcludedPartIds] = useState<string[]>([]);
   const [monthlyOfficeNumber, setMonthlyOfficeNumber] = useState<number | null>(null);
   const currentMonthLabel = useMemo(
     () => new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
@@ -51,9 +50,6 @@ export function SettingsScreen({ navigation }: Props) {
       loadTextSize().then((value) => {
         if (active) setTextSize(value);
       });
-      loadExcludedPartIds().then((ids) => {
-        if (active) setExcludedPartIds(ids);
-      });
       loadMonthlyOffice().then((state) => {
         if (active) setMonthlyOfficeNumber(state && state.monthKey === currentMonthKey() ? state.officeNumber : null);
       });
@@ -68,15 +64,14 @@ export function SettingsScreen({ navigation }: Props) {
     saveTextSize(size);
   };
 
-  const onToggleSkipPart = (partId: string, skip: boolean) => {
-    const next = skip ? [...excludedPartIds, partId] : excludedPartIds.filter((id) => id !== partId);
-    setExcludedPartIds(next);
-    saveExcludedPartIds(next);
-  };
-
   const onSelectMonthlyOffice = (officeNumber: number) => {
-    setMonthlyOfficeNumber(officeNumber);
-    saveMonthlyOffice(officeNumber);
+    if (monthlyOfficeNumber === officeNumber) {
+      setMonthlyOfficeNumber(null);
+      clearMonthlyOffice();
+    } else {
+      setMonthlyOfficeNumber(officeNumber);
+      saveMonthlyOffice(officeNumber);
+    }
   };
 
   const onToggleKeepAwake = (value: boolean) => {
@@ -111,7 +106,7 @@ export function SettingsScreen({ navigation }: Props) {
   const onResetProgress = () => {
     Alert.alert(
       'Reset Vigil Progress?',
-      'This clears where you left off. The next time you open the vigil, it will start from the beginning.',
+      'This clears where you left off and your vigil streak/prayed history. The next time you open the vigil, it will start from the beginning.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -119,7 +114,8 @@ export function SettingsScreen({ navigation }: Props) {
           style: 'destructive',
           onPress: async () => {
             await clearProgress();
-            Alert.alert('Progress Reset', 'Your saved place in the vigil has been cleared.');
+            await clearVigilCompletions();
+            Alert.alert('Progress Reset', 'Your saved place and vigil history have been cleared.');
           },
         },
       ]
@@ -187,27 +183,6 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.rowLabel}>Shorten Tonight’s Vigil</Text>
-          <Text style={styles.rowHint}>
-            Skip a part for tonight’s walkthrough — Next/Prev will jump past it. It stays in Contents if
-            you want to look something up.
-          </Text>
-          {OPTIONAL_PARTS.map((part) => (
-            <View key={part.id} style={[styles.row, styles.optionalPartRow]}>
-              <View style={styles.rowText}>
-                <Text style={styles.rowLabel}>{part.label}</Text>
-                <Text style={styles.rowHint}>{part.hint}</Text>
-              </View>
-              <ThemedSwitch
-                value={excludedPartIds.includes(part.id)}
-                onValueChange={(value) => onToggleSkipPart(part.id, value)}
-                colors={colors}
-              />
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.card}>
           <Text style={styles.rowLabel}>Monthly Office</Text>
           <Text style={styles.rowHint}>
             St. Margaret Mary’s traditional practice: take one office for {currentMonthLabel}, in union with its
@@ -243,7 +218,7 @@ export function SettingsScreen({ navigation }: Props) {
 
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onResetProgress}>
           <Text style={styles.rowLabel}>Reset Vigil Progress</Text>
-          <Text style={styles.rowHint}>Start the next vigil from the very beginning.</Text>
+          <Text style={styles.rowHint}>Clears your saved place and vigil streak/history.</Text>
         </Pressable>
 
         <Text style={styles.sectionTitle}>About</Text>
@@ -302,12 +277,6 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: spacing.md,
-    },
-    optionalPartRow: {
-      marginTop: spacing.sm,
-      paddingTop: spacing.sm,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
     },
     rowText: {
       flex: 1,

@@ -14,7 +14,6 @@ import { saveProgress } from '../utils/progress';
 import { loadKeepScreenAwake, loadTextSize, TEXT_SIZE_SCALES } from '../utils/settings';
 import { loadIntention, clearIntention, archiveIntention } from '../utils/intention';
 import { recordVigilCompletion } from '../utils/vigilStats';
-import { loadExcludedPartIds } from '../utils/vigilPlan';
 
 const KEEP_AWAKE_TAG = 'vigil-screen';
 const FADE_DURATION_MS = 220;
@@ -34,7 +33,6 @@ export function VigilScreen({ route, navigation }: Props) {
   const [index, setIndex] = useState(route.params.startIndex);
   const [textScale, setTextScale] = useState(TEXT_SIZE_SCALES.medium);
   const [intention, setIntention] = useState<string | null>(null);
-  const [excludedPartIds, setExcludedPartIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const step = flatSteps[index];
@@ -49,11 +47,6 @@ export function VigilScreen({ route, navigation }: Props) {
       });
       loadIntention().then((stored) => {
         if (active) setIntention(stored);
-      });
-      // Reloaded on every focus (not just mount) so toggling a part off in
-      // Settings and coming back takes effect on the very next Next/Prev tap.
-      loadExcludedPartIds().then((ids) => {
-        if (active) setExcludedPartIds(new Set(ids));
       });
       return () => {
         active = false;
@@ -107,22 +100,8 @@ export function VigilScreen({ route, navigation }: Props) {
     };
   }, []);
 
-  // Steps whose part was toggled off in Settings ("Shorten Tonight's Vigil")
-  // are skipped over here rather than removed from flatSteps, so the
-  // progress bar/step numbers, saved section-id progress, and Table of
-  // Contents lookups all keep referring to one stable, canonical list.
-  const goNext = () =>
-    setIndex((i) => {
-      let next = Math.min(i + 1, flatSteps.length - 1);
-      while (next < flatSteps.length - 1 && excludedPartIds.has(flatSteps[next].partId)) next++;
-      return next;
-    });
-  const goPrev = () =>
-    setIndex((i) => {
-      let prev = Math.max(i - 1, 0);
-      while (prev > 0 && excludedPartIds.has(flatSteps[prev].partId)) prev--;
-      return prev;
-    });
+  const goNext = () => setIndex((i) => Math.min(i + 1, flatSteps.length - 1));
+  const goPrev = () => setIndex((i) => Math.max(i - 1, 0));
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
