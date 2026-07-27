@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -190,9 +191,10 @@ export function HomeScreen({ navigation }: Props) {
         </View>
       </View>
       <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Image
           source={require('../../assets/two-hearts.png')}
           style={styles.logo}
@@ -292,6 +294,7 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.dateLine}>{todayLabel}</Text>
           <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
         </View>
+      </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -303,14 +306,18 @@ function createStyles(colors: ThemeColors) {
     flex: 1,
     backgroundColor: colors.background,
   },
-  container: {
+  keyboardAvoider: {
     flex: 1,
+  },
+  container: {
+    flexGrow: 1,
     width: '100%',
     maxWidth: contentMaxWidth,
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   header: {
     position: 'absolute',

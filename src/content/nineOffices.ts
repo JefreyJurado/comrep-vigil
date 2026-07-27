@@ -15,6 +15,45 @@ interface OfficeSpec {
 const ordinal = (n: number) =>
   ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth'][n - 1];
 
+// Longest/most specific prefixes first so e.g. "1 John" is matched before a
+// bare "John" check could exist; each reading's citation is tested with
+// startsWith against these in order.
+const READING_INTRODUCTIONS: [prefix: string, introduction: string][] = [
+  ['Matthew', 'A reading from the Holy Gospel according to Matthew.'],
+  ['Mark', 'A reading from the Holy Gospel according to Mark.'],
+  ['Luke', 'A reading from the Holy Gospel according to Luke.'],
+  ['John', 'A reading from the Holy Gospel according to John.'],
+  ['1 John', 'A reading from the first Letter of St. John.'],
+  ['2 John', 'A reading from the second Letter of St. John.'],
+  ['3 John', 'A reading from the third Letter of St. John.'],
+  ['Acts', 'A reading from the Acts of the Apostles.'],
+  ['Romans', 'A reading from the Letter of St. Paul to the Romans.'],
+  ['1 Corinthians', 'A reading from the first Letter of St. Paul to the Corinthians.'],
+  ['2 Corinthians', 'A reading from the second Letter of St. Paul to the Corinthians.'],
+  ['Galatians', 'A reading from the Letter of St. Paul to the Galatians.'],
+  ['Ephesians', 'A reading from the Letter of St. Paul to the Ephesians.'],
+  ['Philippians', 'A reading from the Letter of St. Paul to the Philippians.'],
+  ['Colossians', 'A reading from the Letter of St. Paul to the Colossians.'],
+  ['1 Thessalonians', 'A reading from the first Letter of St. Paul to the Thessalonians.'],
+  ['2 Thessalonians', 'A reading from the second Letter of St. Paul to the Thessalonians.'],
+  ['1 Timothy', 'A reading from the first Letter of St. Paul to Timothy.'],
+  ['2 Timothy', 'A reading from the second Letter of St. Paul to Timothy.'],
+  ['Titus', 'A reading from the Letter of St. Paul to Titus.'],
+  ['Philemon', 'A reading from the Letter of St. Paul to Philemon.'],
+  ['Hebrews', 'A reading from the Letter to the Hebrews.'],
+  ['James', 'A reading from the Letter of St. James.'],
+  ['1 Peter', 'A reading from the first Letter of St. Peter.'],
+  ['2 Peter', 'A reading from the second Letter of St. Peter.'],
+  ['Jude', 'A reading from the Letter of St. Jude.'],
+  ['Revelation', 'A reading from the Book of Revelation.'],
+];
+
+function readingIntroduction(citation: string): string {
+  const found = READING_INTRODUCTIONS.find(([prefix]) => citation.startsWith(prefix));
+  if (!found) throw new Error(`No reading introduction configured for citation: ${citation}`);
+  return found[1];
+}
+
 function buildOfficeSection(spec: OfficeSpec): VigilSection {
   const blocks: ContentBlock[] = [
     { type: 'rubric', text: 'Please all stand', posture: 'stand' },
@@ -26,14 +65,7 @@ function buildOfficeSection(spec: OfficeSpec): VigilSection {
     {
       type: 'reading',
       citation: spec.reading.citation,
-      introduction:
-        spec.reading.citation.startsWith('John') ||
-        spec.reading.citation.startsWith('Matthew') ||
-        spec.reading.citation.startsWith('Luke')
-          ? `A reading from the Holy Gospel according to ${spec.reading.citation.split(' ')[0]}.`
-          : spec.reading.citation.startsWith('Hebrews')
-          ? 'A reading from the Letter to the Hebrews.'
-          : `A reading from the Letter of St. Paul to the ${spec.reading.citation.startsWith('Romans') ? 'Romans' : spec.reading.citation.startsWith('Colossians') ? 'Colossians' : spec.reading.citation.startsWith('Philippians') ? 'Philippians' : ''}.`,
+      introduction: readingIntroduction(spec.reading.citation),
       phrases: spec.reading.phrases,
       closing: { leader: 'The word of the Lord.', response: 'Thanks be to God.' },
     },

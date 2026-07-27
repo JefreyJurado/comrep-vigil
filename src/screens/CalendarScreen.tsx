@@ -1,8 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
@@ -54,6 +64,7 @@ function sortByDate(entries: PersonalScheduleEntry[]): PersonalScheduleEntry[] {
 export function CalendarScreen({}: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const headerHeight = useHeaderHeight();
   const [entries, setEntries] = useState<PersonalScheduleEntry[]>([]);
   const [adding, setAdding] = useState(false);
   const [dateDraft, setDateDraft] = useState('');
@@ -124,7 +135,12 @@ export function CalendarScreen({}: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      >
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {nextVigil ? (
           <View style={styles.nextVigilRow}>
             <MaterialCommunityIcons name="hands-pray" size={16} color={colors.gold} />
@@ -190,17 +206,6 @@ export function CalendarScreen({}: Props) {
                   </Pressable>
                 );
               })}
-            </View>
-
-            <View style={styles.legendRow}>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendSwatch, styles.dayCellVigil]} />
-                <Text style={styles.legendText}>Vigil night</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={styles.dayDot} />
-                <Text style={styles.legendText}>Your entry</Text>
-              </View>
             </View>
           </View>
         ) : (
@@ -284,6 +289,7 @@ export function CalendarScreen({}: Props) {
           )}
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -293,6 +299,9 @@ function createStyles(colors: ThemeColors) {
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
     },
     content: {
       width: '100%',
@@ -422,29 +431,6 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 3,
       backgroundColor: colors.accent,
     },
-    legendRow: {
-      flexDirection: 'row',
-      gap: spacing.lg,
-      marginTop: spacing.sm,
-      paddingTop: spacing.sm,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    legendItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    legendSwatch: {
-      width: 12,
-      height: 12,
-      borderRadius: 3,
-    },
-    legendText: {
-      fontFamily: fonts.italic,
-      fontSize: 13,
-      color: colors.textMuted,
-    },
     rowDivider: {
       borderTopWidth: 1,
       borderTopColor: colors.border,
@@ -475,6 +461,7 @@ function createStyles(colors: ThemeColors) {
       fontFamily: fonts.italic,
       fontSize: 15,
       color: colors.textMuted,
+      marginBottom: spacing.md,
     },
     addRow: {
       flexDirection: 'row',
