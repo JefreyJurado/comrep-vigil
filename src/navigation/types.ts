@@ -7,5 +7,4 @@ export type RootStackParamList = {
   Calendar: undefined;
   Confession: undefined;
   IntentionHistory: undefined;
-  Bookmarks: undefined;
 };

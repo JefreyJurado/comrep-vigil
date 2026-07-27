@@ -15,7 +15,6 @@ import { loadKeepScreenAwake, loadTextSize, TEXT_SIZE_SCALES } from '../utils/se
 import { loadIntention, clearIntention, archiveIntention } from '../utils/intention';
 import { recordVigilCompletion } from '../utils/vigilStats';
 import { loadExcludedPartIds } from '../utils/vigilPlan';
-import { bookmarkKey, loadBookmarks, toggleBookmark } from '../utils/bookmarks';
 
 const KEEP_AWAKE_TAG = 'vigil-screen';
 const FADE_DURATION_MS = 220;
@@ -36,7 +35,6 @@ export function VigilScreen({ route, navigation }: Props) {
   const [textScale, setTextScale] = useState(TEXT_SIZE_SCALES.medium);
   const [intention, setIntention] = useState<string | null>(null);
   const [excludedPartIds, setExcludedPartIds] = useState<Set<string>>(new Set());
-  const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const step = flatSteps[index];
@@ -56,9 +54,6 @@ export function VigilScreen({ route, navigation }: Props) {
       // Settings and coming back takes effect on the very next Next/Prev tap.
       loadExcludedPartIds().then((ids) => {
         if (active) setExcludedPartIds(new Set(ids));
-      });
-      loadBookmarks().then((bookmarks) => {
-        if (active) setBookmarkedKeys(new Set(bookmarks.map((b) => bookmarkKey(b.sectionId, b.blockIndex))));
       });
       return () => {
         active = false;
@@ -129,17 +124,6 @@ export function VigilScreen({ route, navigation }: Props) {
       return prev;
     });
 
-  const onToggleBookmark = (sectionId: string, blockIndex: number) => {
-    const key = bookmarkKey(sectionId, blockIndex);
-    setBookmarkedKeys((current) => {
-      const next = new Set(current);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-    toggleBookmark(sectionId, blockIndex);
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <View style={styles.progressBar}>
@@ -147,13 +131,7 @@ export function VigilScreen({ route, navigation }: Props) {
       </View>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         <Animated.View style={{ opacity: fadeAnim }}>
-          <SectionRenderer
-            section={step.section}
-            scale={textScale}
-            intention={intention}
-            bookmarkedKeys={bookmarkedKeys}
-            onToggleBookmark={onToggleBookmark}
-          />
+          <SectionRenderer section={step.section} scale={textScale} intention={intention} />
         </Animated.View>
       </ScrollView>
       <View style={styles.footer}>
