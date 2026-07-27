@@ -261,7 +261,6 @@ export function HomeScreen({ navigation }: Props) {
               onChangeText={setNameDraft}
               placeholder="Your name"
               placeholderTextColor={colors.textMuted}
-              autoFocus
               returnKeyType="done"
               onSubmitEditing={onSaveName}
             />
