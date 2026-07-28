@@ -1,18 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
@@ -45,7 +36,6 @@ function sortMostRecentFirst(entries: ConfessionEntry[]): ConfessionEntry[] {
 export function ConfessionScreen({}: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const headerHeight = useHeaderHeight();
   const [entries, setEntries] = useState<ConfessionEntry[]>([]);
   const [adding, setAdding] = useState(false);
   const [dateDraft, setDateDraft] = useState('');
@@ -88,12 +78,7 @@ export function ConfessionScreen({}: Props) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
-      >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" bottomOffset={24}>
         <Text style={styles.sectionTitle}>Confession Log</Text>
         <View style={styles.card}>
           {entries.length === 0 && !adding ? (
@@ -158,8 +143,7 @@ export function ConfessionScreen({}: Props) {
             </Pressable>
           )}
         </View>
-      </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -169,9 +153,6 @@ function createStyles(colors: ThemeColors) {
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    flex: {
-      flex: 1,
     },
     content: {
       width: '100%',

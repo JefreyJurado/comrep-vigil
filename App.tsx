@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import type { RootStackParamList } from './src/navigation/types';
@@ -92,7 +93,9 @@ function App() {
   return (
     <ThemeProvider>
       <SafeAreaProvider>
-        <AppNavigator />
+        <KeyboardProvider>
+          <AppNavigator />
+        </KeyboardProvider>
       </SafeAreaProvider>
     </ThemeProvider>
   );

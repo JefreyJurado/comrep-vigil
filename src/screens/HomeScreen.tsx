@@ -3,15 +3,13 @@ import {
   AppState,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -211,11 +209,7 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
       </View>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoider}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" bottomOffset={24}>
         <Image
           source={require('../../assets/two-hearts.png')}
           style={styles.logo}
@@ -336,8 +330,7 @@ export function HomeScreen({ navigation }: Props) {
             </Text>
           )}
         </View>
-      </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -347,9 +340,6 @@ function createStyles(colors: ThemeColors) {
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  keyboardAvoider: {
-    flex: 1,
   },
   container: {
     flexGrow: 1,
