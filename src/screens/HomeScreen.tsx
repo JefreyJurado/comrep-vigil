@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   AppState,
   Image,
   Keyboard,
@@ -28,6 +29,7 @@ import { loadCurrentMonthOffice } from '../utils/monthlyOffice';
 import { loadVigilCompletions, computeStreak } from '../utils/vigilStats';
 import { flatSteps, findStepIndex } from '../content';
 import { officeChoirs } from '../content/nineOffices';
+import { SuccessPopup, useSuccessPopup } from '../components/SuccessPopup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -71,9 +73,13 @@ export function HomeScreen({ navigation }: Props) {
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [intentionDraft, setIntentionDraft] = useState('');
+  const [editingIntention, setEditingIntention] = useState(false);
+  const savedPopup = useSuccessPopup();
   const [lastConfession, setLastConfession] = useState<ConfessionEntry | null>(null);
   const [monthlyOfficeNumber, setMonthlyOfficeNumber] = useState<number | null>(null);
   const [vigilCompletions, setVigilCompletions] = useState<string[]>([]);
+  const [showBookletNotice, setShowBookletNotice] = useState(false);
+  const bookletNoticeOpacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
   const today = useMemo(() => new Date(), []);
   const nextVigil = useMemo(() => getUpcomingVigils(1, today)[0], [today]);
@@ -100,7 +106,9 @@ export function HomeScreen({ navigation }: Props) {
         if (!storedName) setEditingName(true);
       });
       loadIntention().then((stored) => {
-        if (active) setIntentionDraft(stored ?? '');
+        if (!active) return;
+        setIntentionDraft(stored ?? '');
+        setEditingIntention(!stored);
       });
       getLastConfession().then((entry) => {
         if (active) setLastConfession(entry);
@@ -116,6 +124,16 @@ export function HomeScreen({ navigation }: Props) {
       };
     }, [])
   );
+
+  useEffect(() => {
+    setShowBookletNotice(true);
+    bookletNoticeOpacity.setValue(0);
+    Animated.timing(bookletNoticeOpacity, { toValue: 1, duration: 260, useNativeDriver: false }).start();
+  }, []);
+
+  const onDismissBookletNotice = () => {
+    setShowBookletNotice(false);
+  };
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -157,7 +175,11 @@ export function HomeScreen({ navigation }: Props) {
   const onSaveIntention = () => {
     saveIntention(intentionDraft);
     Keyboard.dismiss();
+    if (intentionDraft.trim()) setEditingIntention(false);
+    savedPopup.show('Intention Saved');
   };
+
+  const onEditIntention = () => setEditingIntention(true);
 
   const monthlyOffice = monthlyOfficeNumber ? officeChoirs.find((o) => o.number === monthlyOfficeNumber) : null;
   const vigilStreak = useMemo(() => computeStreak(vigilCompletions), [vigilCompletions]);
@@ -281,18 +303,29 @@ export function HomeScreen({ navigation }: Props) {
               <Text style={styles.intentionHistoryLink}>Past Intentions</Text>
             </Pressable>
           </View>
-          <TextInput
-            style={styles.intentionInput}
-            value={intentionDraft}
-            onChangeText={setIntentionDraft}
-            onBlur={onSaveIntention}
-            placeholder="Who or what are you praying for tonight? (optional)"
-            placeholderTextColor={colors.textMuted}
-            multiline
-          />
-          <Pressable style={styles.intentionSaveButton} onPress={onSaveIntention}>
-            <Text style={styles.intentionSaveButtonText}>Save</Text>
-          </Pressable>
+          {editingIntention ? (
+            <>
+              <TextInput
+                style={styles.intentionInput}
+                value={intentionDraft}
+                onChangeText={setIntentionDraft}
+                onBlur={onSaveIntention}
+                placeholder="Who or what are you praying for tonight? (optional)"
+                placeholderTextColor={colors.textMuted}
+                multiline
+              />
+              <Pressable style={styles.intentionSaveButton} onPress={onSaveIntention}>
+                <Text style={styles.intentionSaveButtonText}>Save</Text>
+              </Pressable>
+            </>
+          ) : (
+            <View style={styles.intentionStaticRow}>
+              <Text style={styles.intentionStaticText}>{intentionDraft}</Text>
+              <Pressable onPress={onEditIntention} hitSlop={8} accessibilityLabel="Edit intention">
+                <Ionicons name="pencil" size={16} color={colors.textMuted} />
+              </Pressable>
+            </View>
+          )}
         </View>
 
         <View style={styles.actions}>
@@ -331,6 +364,36 @@ export function HomeScreen({ navigation }: Props) {
           )}
         </View>
       </KeyboardAwareScrollView>
+      <SuccessPopup
+        visible={savedPopup.visible}
+        message={savedPopup.message}
+        opacity={savedPopup.opacity}
+        colors={colors}
+      />
+      {showBookletNotice && (
+        <Animated.View style={[styles.noticeOverlay, { opacity: bookletNoticeOpacity }]}>
+          <View style={styles.noticeCard}>
+            <View style={styles.noticeIconWrap}>
+              <Ionicons name="information" size={26} color={colors.onAccent} />
+            </View>
+            <Text style={styles.noticeTitle}>Before You Begin</Text>
+            <Text style={styles.noticeMessage}>
+              This app is meant to be an instrument of prayer, not a distraction — please use it reverently.
+            </Text>
+            <Text style={styles.noticeMessage}>
+              If your parish or chapel provides a printed vigil booklet, please follow that copy instead — its
+              wording may differ from this app.
+            </Text>
+            <Text style={styles.noticeMessage}>
+              Please avoid using your phone during the Holy Mass. At other times, keep it silent and the screen
+              dim, out of reverence for those praying beside you.
+            </Text>
+            <Pressable style={styles.noticeButton} onPress={onDismissBookletNotice}>
+              <Text style={styles.noticeButtonText}>Got it</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
@@ -475,6 +538,18 @@ function createStyles(colors: ThemeColors) {
     fontSize: 14,
     color: colors.onAccent,
   },
+  intentionStaticRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  intentionStaticText: {
+    flex: 1,
+    fontFamily: fonts.italic,
+    fontSize: 16,
+    color: colors.text,
+  },
   nameInput: {
     width: '100%',
     borderRadius: radii.sm,
@@ -543,6 +618,67 @@ function createStyles(colors: ThemeColors) {
   secondaryButtonText: {
     fontFamily: fonts.bodySemiBold,
     color: colors.accent,
+    fontSize: 16,
+  },
+  noticeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  noticeCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  noticeIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  noticeTitle: {
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 20,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  noticeMessage: {
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.text,
+    textAlign: 'center',
+    lineHeight: 21,
+  },
+  noticeButton: {
+    marginTop: spacing.md,
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.xl,
+  },
+  noticeButtonText: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.onAccent,
     fontSize: 16,
   },
   });

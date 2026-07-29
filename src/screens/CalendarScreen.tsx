@@ -11,15 +11,18 @@ import { useTheme } from '../theme/ThemeContext';
 import { getFirstFridayOfMonth } from '../utils/reminders';
 import {
   addPersonalScheduleEntry,
+  editPersonalScheduleEntry,
   getUpcomingVigils,
   loadPersonalSchedule,
   removePersonalScheduleEntry,
+  toggleScheduleEntryDone,
   type PersonalScheduleEntry,
 } from '../utils/personalSchedule';
+import { SuccessPopup, useSuccessPopup } from '../components/SuccessPopup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Calendar'>;
 
-const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -57,11 +60,14 @@ export function CalendarScreen({}: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<PersonalScheduleEntry[]>([]);
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [dateDraft, setDateDraft] = useState('');
+  const [timeDraft, setTimeDraft] = useState('');
   const [noteDraft, setNoteDraft] = useState('');
   const today = useMemo(() => new Date(), []);
   const [viewMonth, setViewMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const savedPopup = useSuccessPopup();
 
   const nextVigil = useMemo(() => getUpcomingVigils(1, today)[0], [today]);
   const upcomingVigils = useMemo(() => getUpcomingVigils(6, today), [today]);
@@ -104,18 +110,38 @@ export function CalendarScreen({}: Props) {
   };
 
   const onSelectDay = (date: Date) => {
+    setEditingId(null);
     setDateDraft(toIsoDate(date));
+    setTimeDraft('');
     setNoteDraft('');
     setAdding(true);
   };
 
   const onAddEntry = async () => {
     if (!dateDraft.trim() || !noteDraft.trim()) return;
-    const next = await addPersonalScheduleEntry(dateDraft.trim(), noteDraft.trim());
+    const next = editingId
+      ? await editPersonalScheduleEntry(editingId, dateDraft.trim(), noteDraft.trim(), timeDraft)
+      : await addPersonalScheduleEntry(dateDraft.trim(), noteDraft.trim(), timeDraft);
     setEntries(sortByDate(next));
     setDateDraft('');
+    setTimeDraft('');
     setNoteDraft('');
     setAdding(false);
+    savedPopup.show(editingId ? 'Schedule Updated' : 'Added to Calendar');
+    setEditingId(null);
+  };
+
+  const onEditEntry = (entry: PersonalScheduleEntry) => {
+    setEditingId(entry.id);
+    setDateDraft(entry.date);
+    setTimeDraft(entry.time ?? '');
+    setNoteDraft(entry.note);
+    setAdding(true);
+  };
+
+  const onToggleDone = async (id: string) => {
+    const next = await toggleScheduleEntryDone(id);
+    setEntries(sortByDate(next));
   };
 
   const onRemoveEntry = async (id: string) => {
@@ -183,11 +209,16 @@ export function CalendarScreen({}: Props) {
                 return (
                   <Pressable
                     key={i}
-                    style={[styles.dayCell, isVigil && styles.dayCellVigil, isToday && styles.dayCellToday]}
+                    style={[
+                      styles.dayCell,
+                      hasEntry && !isVigil && styles.dayCellHasEntry,
+                      isVigil && styles.dayCellVigil,
+                      isToday && styles.dayCellToday,
+                    ]}
                     onPress={() => onSelectDay(date)}
                   >
                     <Text style={[styles.dayNumber, isVigil && styles.dayNumberVigil]}>{date.getDate()}</Text>
-                    {hasEntry ? <View style={styles.dayDot} /> : null}
+                    {hasEntry ? <View style={[styles.dayDot, isVigil && styles.dayDotOnVigil]} /> : null}
                   </Pressable>
                 );
               })}
@@ -216,13 +247,32 @@ export function CalendarScreen({}: Props) {
           ) : null}
           {entries.map((entry, i) => (
             <View key={entry.id} style={[styles.entryRow, i > 0 && styles.rowDivider]}>
-              <View style={styles.entryTextCol}>
-                <Text style={styles.entryDate}>{formatEntryDate(entry.date)}</Text>
-                <Text style={styles.entryNote}>{entry.note}</Text>
-              </View>
-              <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
-                <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
+              <Pressable
+                onPress={() => onToggleDone(entry.id)}
+                hitSlop={8}
+                accessibilityLabel={entry.done ? 'Mark as not done' : 'Mark as done'}
+              >
+                <Ionicons
+                  name={entry.done ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={22}
+                  color={entry.done ? colors.accent : colors.textMuted}
+                />
               </Pressable>
+              <View style={styles.entryTextCol}>
+                <Text style={styles.entryDate}>
+                  {formatEntryDate(entry.date)}
+                  {entry.time ? ` · ${entry.time}` : ''}
+                </Text>
+                <Text style={[styles.entryNote, entry.done && styles.entryNoteDone]}>{entry.note}</Text>
+              </View>
+              <View style={styles.entryActions}>
+                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel="Edit entry">
+                  <Ionicons name="pencil" size={18} color={colors.textMuted} />
+                </Pressable>
+                <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
+                  <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
             </View>
           ))}
 
@@ -233,6 +283,13 @@ export function CalendarScreen({}: Props) {
                 value={dateDraft}
                 onChangeText={setDateDraft}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textMuted}
+              />
+              <TextInput
+                style={styles.input}
+                value={timeDraft}
+                onChangeText={setTimeDraft}
+                placeholder="Time (optional, e.g. 7:00 PM)"
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
@@ -248,7 +305,9 @@ export function CalendarScreen({}: Props) {
                   style={styles.cancelButton}
                   onPress={() => {
                     setAdding(false);
+                    setEditingId(null);
                     setDateDraft('');
+                    setTimeDraft('');
                     setNoteDraft('');
                   }}
                 >
@@ -259,7 +318,7 @@ export function CalendarScreen({}: Props) {
                   onPress={onAddEntry}
                   disabled={!dateDraft.trim() || !noteDraft.trim()}
                 >
-                  <Text style={styles.saveButtonText}>Add</Text>
+                  <Text style={styles.saveButtonText}>{editingId ? 'Save' : 'Add'}</Text>
                 </Pressable>
               </View>
             </View>
@@ -274,6 +333,12 @@ export function CalendarScreen({}: Props) {
           )}
         </View>
       </KeyboardAwareScrollView>
+      <SuccessPopup
+        visible={savedPopup.visible}
+        message={savedPopup.message}
+        opacity={savedPopup.opacity}
+        colors={colors}
+      />
     </SafeAreaView>
   );
 }
@@ -388,6 +453,11 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radii.sm,
       marginVertical: 1,
     },
+    dayCellHasEntry: {
+      backgroundColor: colors.noteBackground,
+      borderWidth: 1,
+      borderColor: colors.accentMuted,
+    },
     dayCellVigil: {
       backgroundColor: colors.gold,
     },
@@ -406,11 +476,14 @@ function createStyles(colors: ThemeColors) {
     },
     dayDot: {
       position: 'absolute',
-      bottom: 4,
-      width: 5,
-      height: 5,
-      borderRadius: 3,
+      bottom: 5,
+      width: 16,
+      height: 4,
+      borderRadius: 2,
       backgroundColor: colors.accent,
+    },
+    dayDotOnVigil: {
+      backgroundColor: colors.onAccent,
     },
     rowDivider: {
       borderTopWidth: 1,
@@ -428,6 +501,11 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       gap: 2,
     },
+    entryActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
     entryDate: {
       fontFamily: fonts.bodySemiBold,
       fontSize: 15,
@@ -437,6 +515,10 @@ function createStyles(colors: ThemeColors) {
       fontFamily: fonts.body,
       fontSize: 17,
       color: colors.text,
+    },
+    entryNoteDone: {
+      textDecorationLine: 'line-through',
+      color: colors.textMuted,
     },
     emptyText: {
       fontFamily: fonts.italic,

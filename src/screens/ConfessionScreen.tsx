@@ -10,10 +10,12 @@ import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/th
 import { useTheme } from '../theme/ThemeContext';
 import {
   addConfessionEntry,
+  editConfessionEntry,
   loadConfessionLog,
   removeConfessionEntry,
   type ConfessionEntry,
 } from '../utils/confessionLog';
+import { SuccessPopup, useSuccessPopup } from '../components/SuccessPopup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Confession'>;
 
@@ -33,14 +35,17 @@ function sortMostRecentFirst(entries: ConfessionEntry[]): ConfessionEntry[] {
   });
 }
 
-export function ConfessionScreen({}: Props) {
+export function ConfessionScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<ConfessionEntry[]>([]);
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [dateDraft, setDateDraft] = useState('');
+  const [timeDraft, setTimeDraft] = useState('');
   const [priestDraft, setPriestDraft] = useState('');
   const [noteDraft, setNoteDraft] = useState('');
+  const savedPopup = useSuccessPopup();
 
   useFocusEffect(
     useCallback(() => {
@@ -56,19 +61,35 @@ export function ConfessionScreen({}: Props) {
 
   const onAddEntry = async () => {
     if (!dateDraft.trim() || !priestDraft.trim()) return;
-    const next = await addConfessionEntry(dateDraft.trim(), priestDraft.trim(), noteDraft);
+    const next = editingId
+      ? await editConfessionEntry(editingId, dateDraft.trim(), priestDraft.trim(), noteDraft, timeDraft)
+      : await addConfessionEntry(dateDraft.trim(), priestDraft.trim(), noteDraft, timeDraft);
     setEntries(sortMostRecentFirst(next));
     setDateDraft('');
+    setTimeDraft('');
     setPriestDraft('');
     setNoteDraft('');
     setAdding(false);
+    savedPopup.show(editingId ? 'Confession Updated' : 'Confession Logged');
+    setEditingId(null);
   };
 
   const onCancel = () => {
     setAdding(false);
+    setEditingId(null);
     setDateDraft('');
+    setTimeDraft('');
     setPriestDraft('');
     setNoteDraft('');
+  };
+
+  const onEditEntry = (entry: ConfessionEntry) => {
+    setEditingId(entry.id);
+    setDateDraft(entry.date);
+    setTimeDraft(entry.time ?? '');
+    setPriestDraft(entry.priest);
+    setNoteDraft(entry.note ?? '');
+    setAdding(true);
   };
 
   const onRemoveEntry = async (id: string) => {
@@ -79,6 +100,14 @@ export function ConfessionScreen({}: Props) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" bottomOffset={24}>
+        <Pressable style={styles.examinationLink} onPress={() => navigation.navigate('Examination')}>
+          <View style={styles.examinationIconWrap}>
+            <Ionicons name="list-outline" size={18} color={colors.onAccent} />
+          </View>
+          <Text style={styles.examinationLinkText}>Examination of Conscience</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.accent} />
+        </Pressable>
+
         <Text style={styles.sectionTitle}>Confession Log</Text>
         <View style={styles.card}>
           {entries.length === 0 && !adding ? (
@@ -87,13 +116,21 @@ export function ConfessionScreen({}: Props) {
           {entries.map((entry, i) => (
             <View key={entry.id} style={[styles.entryRow, i > 0 && styles.rowDivider]}>
               <View style={styles.entryTextCol}>
-                <Text style={styles.entryDate}>{formatEntryDate(entry.date)}</Text>
+                <Text style={styles.entryDate}>
+                  {formatEntryDate(entry.date)}
+                  {entry.time ? ` · ${entry.time}` : ''}
+                </Text>
                 <Text style={styles.entryPriest}>{entry.priest}</Text>
                 {entry.note ? <Text style={styles.entryNote}>{entry.note}</Text> : null}
               </View>
-              <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
-                <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
-              </Pressable>
+              <View style={styles.entryActions}>
+                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel="Edit entry">
+                  <Ionicons name="pencil" size={18} color={colors.textMuted} />
+                </Pressable>
+                <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
+                  <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
             </View>
           ))}
 
@@ -104,6 +141,13 @@ export function ConfessionScreen({}: Props) {
                 value={dateDraft}
                 onChangeText={setDateDraft}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textMuted}
+              />
+              <TextInput
+                style={styles.input}
+                value={timeDraft}
+                onChangeText={setTimeDraft}
+                placeholder="Time (optional, e.g. 4:00 PM)"
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
@@ -132,18 +176,30 @@ export function ConfessionScreen({}: Props) {
                   onPress={onAddEntry}
                   disabled={!dateDraft.trim() || !priestDraft.trim()}
                 >
-                  <Text style={styles.saveButtonText}>Add</Text>
+                  <Text style={styles.saveButtonText}>{editingId ? 'Save' : 'Add'}</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <Pressable style={[styles.addRow, entries.length > 0 && styles.rowDivider]} onPress={() => setAdding(true)}>
+            <Pressable
+              style={[styles.addRow, entries.length > 0 && styles.rowDivider]}
+              onPress={() => {
+                setEditingId(null);
+                setAdding(true);
+              }}
+            >
               <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
               <Text style={styles.addRowText}>Add a confession</Text>
             </Pressable>
           )}
         </View>
       </KeyboardAwareScrollView>
+      <SuccessPopup
+        visible={savedPopup.visible}
+        message={savedPopup.message}
+        opacity={savedPopup.opacity}
+        colors={colors}
+      />
     </SafeAreaView>
   );
 }
@@ -169,6 +225,31 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.md,
       marginBottom: spacing.xs,
     },
+    examinationLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginTop: spacing.md,
+    },
+    examinationIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    examinationLinkText: {
+      flex: 1,
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 16,
+      color: colors.text,
+    },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radii.md,
@@ -191,6 +272,11 @@ function createStyles(colors: ThemeColors) {
     entryTextCol: {
       flex: 1,
       gap: 2,
+    },
+    entryActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
     },
     entryDate: {
       fontFamily: fonts.bodySemiBold,

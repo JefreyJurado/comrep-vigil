@@ -1,4 +1,12 @@
-import { VigilPart } from '../types/content';
+import { ContentBlock, VigilPart } from '../types/content';
+import { examinationOfConscience } from './examinationOfConscience';
+
+const examinationBlocks: ContentBlock[] = examinationOfConscience.flatMap(
+  (section): ContentBlock[] => [
+    { type: 'label', text: section.title },
+    { type: 'list', items: section.questions },
+  ]
+);
 
 export const confessionGuidePart: VigilPart = {
   id: 'confession-guide',
@@ -25,6 +33,17 @@ export const confessionGuidePart: VigilPart = {
           type: 'paragraph',
           text: 'Before going to Confession you should make a review of mortal and venial sins since your last sacramental confession, and should express sorrow for sins, hatred for sins and a firm resolution not to sin again.',
         },
+      ],
+    },
+    {
+      id: 'examination-of-conscience',
+      title: 'Examination of Conscience',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'Take a quiet moment to reflect on each question below, considering your thoughts, words, and actions since your last confession.',
+        },
+        ...examinationBlocks,
       ],
     },
     {

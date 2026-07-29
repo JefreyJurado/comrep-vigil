@@ -2,6 +2,7 @@ import { VigilPart, VigilSection } from '../types/content';
 import { introPart } from './intro';
 import { openingPart } from './opening';
 import { rosaryPart } from './rosary';
+import { praiseAndWorshipPart } from './praiseAndWorship';
 import { selfOfferingPart } from './selfOffering';
 import { nineOfficesPart } from './nineOffices';
 import { benedictionPart } from './benediction';
@@ -16,6 +17,7 @@ export const vigilParts: VigilPart[] = [
   introPart,
   openingPart,
   rosaryPart,
+  praiseAndWorshipPart,
   selfOfferingPart,
   nineOfficesPart,
   benedictionPart,

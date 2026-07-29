@@ -63,6 +63,14 @@ export interface VigilSection {
   smallTitle?: boolean;
   /** Epigraph scripture quote shown under the title */
   epigraph?: { text: string; citation: string };
+  /** Vertically centers this section's content in the viewport instead of
+   * starting at the top — for short, standalone intro screens where reading
+   * flow from the top doesn't matter (not for long scrollable content). */
+  centerContent?: boolean;
+  /** MaterialCommunityIcons glyph name, rendered as a circular badge above
+   * the title — for short standalone intro screens that benefit from a
+   * visual anchor. */
+  icon?: string;
   blocks: ContentBlock[];
 }
 

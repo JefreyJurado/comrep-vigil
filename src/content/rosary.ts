@@ -60,6 +60,10 @@ export const rosaryPart: VigilPart = {
             'The Finding of the Child Jesus in the Temple',
           ],
         },
+        {
+          type: 'paragraph',
+          text: 'In these mysteries we walk with Mary through the hidden beginnings of our salvation: the Angel’s greeting, the visit to Elizabeth, the birth in Bethlehem, the presentation in the Temple, and the finding of the boy Jesus. Here, joy is quiet and often hidden — found in small, faithful yeses rather than grand gestures. Let them remind you that God often works first in silence, before He works in glory.',
+        },
         { type: 'label', text: 'The Sorrowful Mysteries (Tuesday & Friday)' },
         {
           type: 'list',
@@ -71,6 +75,10 @@ export const rosaryPart: VigilPart = {
             'The Carrying of the Cross',
             'The Crucifixion and Death of Jesus Christ',
           ],
+        },
+        {
+          type: 'paragraph',
+          text: 'In these mysteries we accompany Jesus through His Passion: the agony in the garden, the scourging, the crowning with thorns, the carrying of the Cross, and His death on Calvary. Here we meditate on the weight of sin and the depth of a love that did not turn away from suffering. Let them draw you into gratitude, and into reparation for the sins that still wound His Heart today.',
         },
         { type: 'label', text: 'The Glorious Mysteries (Wednesday & Sunday)' },
         {
@@ -84,6 +92,10 @@ export const rosaryPart: VigilPart = {
             'The Coronation of the Blessed Virgin Mary as Queen of Heaven and Earth',
           ],
         },
+        {
+          type: 'paragraph',
+          text: 'In these mysteries we witness the triumph that follows the Cross: the Resurrection, the Ascension, the descent of the Holy Spirit, and Mary’s Assumption and Coronation. Here, sorrow gives way to hope, and death is not the final word. Let them renew your trust that whatever you carry through this vigil will not go unanswered.',
+        },
         { type: 'label', text: 'The Luminous Mysteries (Thursday)' },
         {
           type: 'list',
@@ -95,6 +107,10 @@ export const rosaryPart: VigilPart = {
             'The Transfiguration',
             'The Institution of the Eucharist',
           ],
+        },
+        {
+          type: 'paragraph',
+          text: 'In these mysteries we follow Jesus through His public life: His Baptism, the wedding at Cana, His proclamation of the Kingdom, His Transfiguration, and His gift of the Eucharist. Here we see the light of Christ breaking into the ordinary world, calling us to conversion and communion. Let them remind you that this same Christ, present in the Eucharist, is the one before whom you keep watch tonight.',
         },
       ],
     },
@@ -232,10 +248,6 @@ export const rosaryPart: VigilPart = {
             { speaker: 'L', text: 'Mary Help of Christians,' },
             { speaker: 'R', text: 'Pray for us.' },
           ],
-        },
-        {
-          type: 'note',
-          text: 'Praise and Worship (M.A.C.T.S): Marian, Adoration, Contrition, Thanksgiving & Supplication',
         },
       ],
     },

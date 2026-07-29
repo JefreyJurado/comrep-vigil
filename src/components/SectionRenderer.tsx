@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ContentBlock, DialogueLine, VigilSection } from '../types/content';
@@ -184,16 +184,18 @@ function Block({
   styles,
   colors,
   intention,
+  centered,
 }: {
   block: ContentBlock;
   styles: Styles;
   colors: ThemeColors;
   intention: string | null;
+  centered?: boolean;
 }) {
   switch (block.type) {
     case 'label':
       return (
-        <Text style={styles.label} accessibilityRole="header">
+        <Text style={[styles.label, centered && styles.textCenter]} accessibilityRole="header">
           {block.text.toUpperCase()}
         </Text>
       );
@@ -204,7 +206,13 @@ function Block({
       return <Text style={styles.rubric}>{block.text}</Text>;
 
     case 'paragraph':
-      return <QuoteAwareText text={block.text} style={styles.paragraph} quoteStyle={styles.inlineQuote} />;
+      return (
+        <QuoteAwareText
+          text={block.text}
+          style={[styles.paragraph, centered && styles.textCenter]}
+          quoteStyle={styles.inlineQuote}
+        />
+      );
 
     case 'hymnCue':
       return <HymnCueBlock styles={styles} colors={colors} />;
@@ -329,8 +337,19 @@ export function SectionRenderer({
 
   return (
     <View>
-      {section.kicker ? <Text style={styles.kicker}>{section.kicker.toUpperCase()}</Text> : null}
-      <Text style={section.smallTitle ? styles.titleSmall : styles.title}>{section.title}</Text>
+      {section.icon ? (
+        <View style={styles.sectionIconWrap}>
+          <MaterialCommunityIcons name={section.icon as never} size={30} color={colors.onAccent} />
+        </View>
+      ) : null}
+      {section.kicker ? (
+        <Text style={[styles.kicker, section.centerContent && styles.textCenter]}>
+          {section.kicker.toUpperCase()}
+        </Text>
+      ) : null}
+      <Text style={[section.smallTitle ? styles.titleSmall : styles.title, section.centerContent && styles.textCenter]}>
+        {section.title}
+      </Text>
       {section.epigraph ? (
         <View style={styles.epigraphBlock}>
           <Text style={styles.epigraphText}>“{section.epigraph.text}”</Text>
@@ -339,7 +358,14 @@ export function SectionRenderer({
       ) : null}
       <View style={styles.blocks}>
         {section.blocks.map((block, i) => (
-          <Block key={i} block={block} styles={styles} colors={colors} intention={intention} />
+          <Block
+            key={i}
+            block={block}
+            styles={styles}
+            colors={colors}
+            intention={intention}
+            centered={section.centerContent}
+          />
         ))}
       </View>
     </View>
@@ -353,6 +379,19 @@ function f(px: number, scale: number): number {
 
 function createStyles(scale: number, colors: ThemeColors) {
   return StyleSheet.create({
+    textCenter: {
+      textAlign: 'center',
+    },
+    sectionIconWrap: {
+      alignSelf: 'center',
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
     kicker: {
       fontFamily: fonts.displaySemiBold,
       fontSize: f(14, scale),

@@ -15,6 +15,7 @@ import { HymnScreen } from './src/screens/HymnScreen';
 import { CalendarScreen } from './src/screens/CalendarScreen';
 import { ConfessionScreen } from './src/screens/ConfessionScreen';
 import { IntentionHistoryScreen } from './src/screens/IntentionHistoryScreen';
+import { ExaminationScreen } from './src/screens/ExaminationScreen';
 import { fonts } from './src/theme/theme';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { refreshVigilReminderIfNeeded } from './src/utils/reminders';
@@ -61,6 +62,11 @@ function AppNavigator() {
           name="IntentionHistory"
           component={IntentionHistoryScreen}
           options={{ title: 'Past Intentions' }}
+        />
+        <Stack.Screen
+          name="Examination"
+          component={ExaminationScreen}
+          options={{ title: 'Examination of Conscience' }}
         />
       </Stack.Navigator>
       <StatusBar style={mode === 'night' ? 'light' : 'dark'} />

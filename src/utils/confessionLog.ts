@@ -4,6 +4,7 @@ export interface ConfessionEntry {
   id: string;
   /** ISO yyyy-mm-dd */
   date: string;
+  time?: string;
   priest: string;
   note?: string;
 }
@@ -29,9 +30,34 @@ async function saveConfessionLog(entries: ConfessionEntry[]): Promise<void> {
   }
 }
 
-export async function addConfessionEntry(date: string, priest: string, note: string): Promise<ConfessionEntry[]> {
+export async function addConfessionEntry(
+  date: string,
+  priest: string,
+  note: string,
+  time?: string
+): Promise<ConfessionEntry[]> {
   const entries = await loadConfessionLog();
-  const next = [...entries, { id: `${Date.now()}`, date, priest: priest.trim(), note: note.trim() || undefined }];
+  const next = [
+    ...entries,
+    { id: `${Date.now()}`, date, time: time?.trim() || undefined, priest: priest.trim(), note: note.trim() || undefined },
+  ];
+  await saveConfessionLog(next);
+  return next;
+}
+
+export async function editConfessionEntry(
+  id: string,
+  date: string,
+  priest: string,
+  note: string,
+  time?: string
+): Promise<ConfessionEntry[]> {
+  const entries = await loadConfessionLog();
+  const next = entries.map((entry) =>
+    entry.id === id
+      ? { ...entry, date, time: time?.trim() || undefined, priest: priest.trim(), note: note.trim() || undefined }
+      : entry
+  );
   await saveConfessionLog(next);
   return next;
 }

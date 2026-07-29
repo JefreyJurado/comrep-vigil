@@ -5,7 +5,9 @@ export interface PersonalScheduleEntry {
   id: string;
   /** ISO yyyy-mm-dd */
   date: string;
+  time?: string;
   note: string;
+  done?: boolean;
 }
 
 const SCHEDULE_KEY = 'comrep-vigil:personal-schedule';
@@ -29,9 +31,37 @@ async function savePersonalSchedule(entries: PersonalScheduleEntry[]): Promise<v
   }
 }
 
-export async function addPersonalScheduleEntry(date: string, note: string): Promise<PersonalScheduleEntry[]> {
+export async function addPersonalScheduleEntry(
+  date: string,
+  note: string,
+  time?: string
+): Promise<PersonalScheduleEntry[]> {
   const entries = await loadPersonalSchedule();
-  const next = [...entries, { id: `${Date.now()}`, date, note: note.trim() }];
+  const next = [
+    ...entries,
+    { id: `${Date.now()}`, date, time: time?.trim() || undefined, note: note.trim() },
+  ];
+  await savePersonalSchedule(next);
+  return next;
+}
+
+export async function editPersonalScheduleEntry(
+  id: string,
+  date: string,
+  note: string,
+  time?: string
+): Promise<PersonalScheduleEntry[]> {
+  const entries = await loadPersonalSchedule();
+  const next = entries.map((entry) =>
+    entry.id === id ? { ...entry, date, time: time?.trim() || undefined, note: note.trim() } : entry
+  );
+  await savePersonalSchedule(next);
+  return next;
+}
+
+export async function toggleScheduleEntryDone(id: string): Promise<PersonalScheduleEntry[]> {
+  const entries = await loadPersonalSchedule();
+  const next = entries.map((entry) => (entry.id === id ? { ...entry, done: !entry.done } : entry));
   await savePersonalSchedule(next);
   return next;
 }
