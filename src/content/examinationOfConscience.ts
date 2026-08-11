@@ -1,3 +1,7 @@
+import { Language } from '../i18n/languages';
+import { reviewed as esReviewed, examinationOfConscience_es } from './es/examinationOfConscience';
+import { reviewed as filReviewed, examinationOfConscience_fil } from './fil/examinationOfConscience';
+
 export interface ExaminationSection {
   id: string;
   title: string;
@@ -108,3 +112,9 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
 ];
+
+export function getExaminationOfConscience(language: Language): ExaminationSection[] {
+  if (language === 'es' && esReviewed) return examinationOfConscience_es;
+  if (language === 'fil' && filReviewed) return examinationOfConscience_fil;
+  return examinationOfConscience;
+}

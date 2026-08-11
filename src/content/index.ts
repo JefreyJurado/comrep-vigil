@@ -12,6 +12,10 @@ import { consecrationPart } from './consecration';
 import { confessionGuidePart } from './confessionGuide';
 import { devotionalListsPart } from './devotionalLists';
 import { sevenSorrowsPart } from './sevenSorrows';
+import { rosaryPart_es } from './es/rosary';
+import { benedictionPart_es } from './es/benediction';
+import { rosaryPart_fil } from './fil/rosary';
+import { benedictionPart_fil } from './fil/benediction';
 
 /** Full guided vigil, in the order the booklet is prayed. */
 export const vigilParts: VigilPart[] = [
@@ -42,12 +46,12 @@ export interface LocalizedPart {
 }
 
 // Populated incrementally, part-by-part, as translations are drafted and
-// reviewed (see src/content/es/*.ts, src/content/fil/*.ts). Empty until that
-// content-translation work lands — until then getVigilParts falls back to
-// English for every section, same as if no translation existed yet.
+// reviewed (see src/content/es/*.ts, src/content/fil/*.ts). Each entry's
+// sections are only used once their `reviewed` flag is true — until then
+// getVigilParts falls back to English, same as if no translation existed.
 const localePartsByLanguage: Record<Exclude<Language, 'en'>, LocalizedPart[]> = {
-  es: [],
-  fil: [],
+  es: [rosaryPart_es, benedictionPart_es],
+  fil: [rosaryPart_fil, benedictionPart_fil],
 };
 
 /**

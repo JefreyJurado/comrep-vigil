@@ -7,16 +7,19 @@ import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { examinationOfConscience } from '../content/examinationOfConscience';
+import { examinationOfConscience, getExaminationOfConscience } from '../content/examinationOfConscience';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Examination'>;
 
+// Question count per section is identical across languages (translations are
+// word-for-word), so the English source is a safe, static total.
 const TOTAL_QUESTIONS = examinationOfConscience.reduce((sum, section) => sum + section.questions.length, 0);
 
 export function ExaminationScreen({}: Props) {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const sections = useMemo(() => getExaminationOfConscience(language), [language]);
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const onToggle = (key: string) => {
@@ -45,7 +48,7 @@ export function ExaminationScreen({}: Props) {
           {t('examination.progress', { checked: checked.size, total: TOTAL_QUESTIONS })}
         </Text>
 
-        {examinationOfConscience.map((section, sectionIndex) => (
+        {sections.map((section, sectionIndex) => (
           <View key={section.id} style={styles.card}>
             <Text style={styles.commandmentTitle}>{section.title}</Text>
             {section.questions.map((question, questionIndex) => {
