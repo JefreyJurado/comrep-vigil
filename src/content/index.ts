@@ -42,6 +42,10 @@ export interface LocalizedSection {
 /** A locale's translated sections for one vigil part, matched to the English original by id. */
 export interface LocalizedPart {
   id: string;
+  /** Translated part heading. Applied unconditionally (not gated by section
+   * review) since it's a short label, not liturgical content. */
+  title?: string;
+  shortTitle?: string;
   sections: LocalizedSection[];
 }
 
@@ -68,6 +72,8 @@ export function getVigilParts(language: Language): VigilPart[] {
     if (!localePart) return basePart;
     return {
       ...basePart,
+      title: localePart.title ?? basePart.title,
+      shortTitle: localePart.shortTitle ?? basePart.shortTitle,
       sections: basePart.sections.map((baseSection) => {
         const entry = localePart.sections.find((s) => s.section.id === baseSection.id);
         return entry?.reviewed ? entry.section : baseSection;
@@ -84,17 +90,36 @@ export interface FlatStep {
   section: VigilSection;
 }
 
-export const flatSteps: FlatStep[] = vigilParts.flatMap((part) =>
-  part.sections.map((section) => ({
-    index: 0, // filled below
-    partId: part.id,
-    partTitle: part.shortTitle ?? part.title,
-    section,
-  }))
-);
-flatSteps.forEach((step, i) => {
-  step.index = i;
-});
+function buildFlatSteps(parts: VigilPart[]): FlatStep[] {
+  const steps = parts.flatMap((part) =>
+    part.sections.map((section) => ({
+      index: 0, // filled below
+      partId: part.id,
+      partTitle: part.shortTitle ?? part.title,
+      section,
+    }))
+  );
+  steps.forEach((step, i) => {
+    step.index = i;
+  });
+  return steps;
+}
+
+export const flatSteps: FlatStep[] = buildFlatSteps(vigilParts);
+
+// Section order, count, and ids are identical across languages (getVigilParts
+// only ever swaps section content, never reorders or adds/removes sections),
+// so an index found via the English flatSteps is always valid for any
+// language's flatSteps too.
+const flatStepsCache = new Map<Language, FlatStep[]>([['en', flatSteps]]);
+
+export function getFlatSteps(language: Language): FlatStep[] {
+  const cached = flatStepsCache.get(language);
+  if (cached) return cached;
+  const steps = buildFlatSteps(getVigilParts(language));
+  flatStepsCache.set(language, steps);
+  return steps;
+}
 
 export function findStepIndex(sectionId: string): number {
   return flatSteps.findIndex((s) => s.section.id === sectionId);
