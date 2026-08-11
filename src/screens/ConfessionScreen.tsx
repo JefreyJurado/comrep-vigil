@@ -8,6 +8,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import {
   addConfessionEntry,
   editConfessionEntry,
@@ -37,6 +38,7 @@ function sortMostRecentFirst(entries: ConfessionEntry[]): ConfessionEntry[] {
 
 export function ConfessionScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<ConfessionEntry[]>([]);
   const [adding, setAdding] = useState(false);
@@ -70,7 +72,7 @@ export function ConfessionScreen({ navigation }: Props) {
     setPriestDraft('');
     setNoteDraft('');
     setAdding(false);
-    savedPopup.show(editingId ? 'Confession Updated' : 'Confession Logged');
+    savedPopup.show(t(editingId ? 'confession.updated' : 'confession.logged'));
     setEditingId(null);
   };
 
@@ -104,14 +106,14 @@ export function ConfessionScreen({ navigation }: Props) {
           <View style={styles.examinationIconWrap}>
             <Ionicons name="list-outline" size={18} color={colors.onAccent} />
           </View>
-          <Text style={styles.examinationLinkText}>Examination of Conscience</Text>
+          <Text style={styles.examinationLinkText}>{t('confession.examinationLink')}</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.accent} />
         </Pressable>
 
-        <Text style={styles.sectionTitle}>Confession Log</Text>
+        <Text style={styles.sectionTitle}>{t('confession.log')}</Text>
         <View style={styles.card}>
           {entries.length === 0 && !adding ? (
-            <Text style={styles.emptyText}>No confessions logged yet.</Text>
+            <Text style={styles.emptyText}>{t('confession.noneLoggedYet')}</Text>
           ) : null}
           {entries.map((entry, i) => (
             <View key={entry.id} style={[styles.entryRow, i > 0 && styles.rowDivider]}>
@@ -124,10 +126,14 @@ export function ConfessionScreen({ navigation }: Props) {
                 {entry.note ? <Text style={styles.entryNote}>{entry.note}</Text> : null}
               </View>
               <View style={styles.entryActions}>
-                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel="Edit entry">
+                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel={t('confession.editEntry')}>
                   <Ionicons name="pencil" size={18} color={colors.textMuted} />
                 </Pressable>
-                <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
+                <Pressable
+                  onPress={() => onRemoveEntry(entry.id)}
+                  hitSlop={8}
+                  accessibilityLabel={t('confession.removeEntry')}
+                >
                   <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
                 </Pressable>
               </View>
@@ -140,33 +146,33 @@ export function ConfessionScreen({ navigation }: Props) {
                 style={styles.input}
                 value={dateDraft}
                 onChangeText={setDateDraft}
-                placeholder="YYYY-MM-DD"
+                placeholder={t('confession.datePlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 value={timeDraft}
                 onChangeText={setTimeDraft}
-                placeholder="Time (optional, e.g. 4:00 PM)"
+                placeholder={t('confession.timePlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 value={priestDraft}
                 onChangeText={setPriestDraft}
-                placeholder="Priest's name"
+                placeholder={t('confession.priestPlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 value={noteDraft}
                 onChangeText={setNoteDraft}
-                placeholder="Note (optional)"
+                placeholder={t('confession.notePlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <View style={styles.addFormActions}>
                 <Pressable style={styles.cancelButton} onPress={onCancel}>
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </Pressable>
                 <Pressable
                   style={[
@@ -176,7 +182,7 @@ export function ConfessionScreen({ navigation }: Props) {
                   onPress={onAddEntry}
                   disabled={!dateDraft.trim() || !priestDraft.trim()}
                 >
-                  <Text style={styles.saveButtonText}>{editingId ? 'Save' : 'Add'}</Text>
+                  <Text style={styles.saveButtonText}>{t(editingId ? 'common.save' : 'common.add')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -189,7 +195,7 @@ export function ConfessionScreen({ navigation }: Props) {
               }}
             >
               <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
-              <Text style={styles.addRowText}>Add a confession</Text>
+              <Text style={styles.addRowText}>{t('confession.addConfession')}</Text>
             </Pressable>
           )}
         </View>

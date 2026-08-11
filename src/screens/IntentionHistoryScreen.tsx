@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { loadIntentionHistory, removeIntentionHistoryEntry, type IntentionEntry } from '../utils/intention';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'IntentionHistory'>;
@@ -29,6 +30,7 @@ function sortMostRecentFirst(entries: IntentionEntry[]): IntentionEntry[] {
 
 export function IntentionHistoryScreen({}: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<IntentionEntry[]>([]);
 
@@ -52,13 +54,10 @@ export function IntentionHistoryScreen({}: Props) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Past Intentions</Text>
+        <Text style={styles.sectionTitle}>{t('home.pastIntentions')}</Text>
         <View style={styles.card}>
           {entries.length === 0 ? (
-            <Text style={styles.emptyText}>
-              No intentions logged yet. Whatever you write in Tonight’s Intention is saved here once you finish a
-              vigil.
-            </Text>
+            <Text style={styles.emptyText}>{t('intentionHistory.empty')}</Text>
           ) : null}
           {entries.map((entry, i) => (
             <View key={entry.id} style={[styles.entryRow, i > 0 && styles.rowDivider]}>
@@ -66,7 +65,7 @@ export function IntentionHistoryScreen({}: Props) {
                 <Text style={styles.entryDate}>{formatEntryDate(entry.date)}</Text>
                 <Text style={styles.entryText}>{entry.text}</Text>
               </View>
-              <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
+              <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel={t('calendar.removeEntry')}>
                 <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
               </Pressable>
             </View>

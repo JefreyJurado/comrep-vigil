@@ -8,6 +8,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { getFirstFridayOfMonth } from '../utils/reminders';
 import {
   addPersonalScheduleEntry,
@@ -57,6 +58,7 @@ function sortByDate(entries: PersonalScheduleEntry[]): PersonalScheduleEntry[] {
 
 export function CalendarScreen({}: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<PersonalScheduleEntry[]>([]);
   const [adding, setAdding] = useState(false);
@@ -127,7 +129,7 @@ export function CalendarScreen({}: Props) {
     setTimeDraft('');
     setNoteDraft('');
     setAdding(false);
-    savedPopup.show(editingId ? 'Schedule Updated' : 'Added to Calendar');
+    savedPopup.show(t(editingId ? 'calendar.scheduleUpdated' : 'calendar.addedToCalendar'));
     setEditingId(null);
   };
 
@@ -156,7 +158,10 @@ export function CalendarScreen({}: Props) {
           <View style={styles.nextVigilRow}>
             <MaterialCommunityIcons name="hands-pray" size={16} color={colors.gold} />
             <Text style={styles.nextVigilText}>
-              Next vigil: {formatWithYear(nextVigil.friday)} – {formatWithYear(nextVigil.saturday)}
+              {t('calendar.nextVigil', {
+                friday: formatWithYear(nextVigil.friday),
+                saturday: formatWithYear(nextVigil.saturday),
+              })}
             </Text>
           </View>
         ) : null}
@@ -167,27 +172,29 @@ export function CalendarScreen({}: Props) {
             onPress={() => setViewMode('calendar')}
           >
             <Text style={[styles.viewToggleText, viewMode === 'calendar' && styles.viewToggleTextSelected]}>
-              Calendar
+              {t('calendar.calendarTab')}
             </Text>
           </Pressable>
           <Pressable
             style={[styles.viewToggleButton, viewMode === 'list' && styles.viewToggleButtonSelected]}
             onPress={() => setViewMode('list')}
           >
-            <Text style={[styles.viewToggleText, viewMode === 'list' && styles.viewToggleTextSelected]}>List</Text>
+            <Text style={[styles.viewToggleText, viewMode === 'list' && styles.viewToggleTextSelected]}>
+              {t('calendar.listTab')}
+            </Text>
           </Pressable>
         </View>
 
         {viewMode === 'calendar' ? (
           <View style={styles.card}>
             <View style={styles.monthNav}>
-              <Pressable onPress={() => onChangeMonth(-1)} hitSlop={10} accessibilityLabel="Previous month">
+              <Pressable onPress={() => onChangeMonth(-1)} hitSlop={10} accessibilityLabel={t('calendar.prevMonth')}>
                 <Ionicons name="chevron-back" size={20} color={colors.accent} />
               </Pressable>
               <Text style={styles.monthLabel}>
                 {viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </Text>
-              <Pressable onPress={() => onChangeMonth(1)} hitSlop={10} accessibilityLabel="Next month">
+              <Pressable onPress={() => onChangeMonth(1)} hitSlop={10} accessibilityLabel={t('calendar.nextMonth')}>
                 <Ionicons name="chevron-forward" size={20} color={colors.accent} />
               </Pressable>
             </View>
@@ -237,12 +244,12 @@ export function CalendarScreen({}: Props) {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>My Schedule</Text>
+        <Text style={styles.sectionTitle}>{t('calendar.mySchedule')}</Text>
         <View style={styles.card}>
           {entries.length === 0 && !adding ? (
             <Text style={styles.emptyText}>
-              Nothing on your personal schedule yet.
-              {viewMode === 'calendar' ? ' Tap a day above to add one.' : ''}
+              {t('calendar.noScheduleEmpty')}
+              {viewMode === 'calendar' ? t('calendar.tapDayToAdd') : ''}
             </Text>
           ) : null}
           {entries.map((entry, i) => (
@@ -250,7 +257,7 @@ export function CalendarScreen({}: Props) {
               <Pressable
                 onPress={() => onToggleDone(entry.id)}
                 hitSlop={8}
-                accessibilityLabel={entry.done ? 'Mark as not done' : 'Mark as done'}
+                accessibilityLabel={t(entry.done ? 'calendar.markNotDone' : 'calendar.markDone')}
               >
                 <Ionicons
                   name={entry.done ? 'checkmark-circle' : 'ellipse-outline'}
@@ -266,10 +273,14 @@ export function CalendarScreen({}: Props) {
                 <Text style={[styles.entryNote, entry.done && styles.entryNoteDone]}>{entry.note}</Text>
               </View>
               <View style={styles.entryActions}>
-                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel="Edit entry">
+                <Pressable onPress={() => onEditEntry(entry)} hitSlop={8} accessibilityLabel={t('calendar.editEntry')}>
                   <Ionicons name="pencil" size={18} color={colors.textMuted} />
                 </Pressable>
-                <Pressable onPress={() => onRemoveEntry(entry.id)} hitSlop={8} accessibilityLabel="Remove entry">
+                <Pressable
+                  onPress={() => onRemoveEntry(entry.id)}
+                  hitSlop={8}
+                  accessibilityLabel={t('calendar.removeEntry')}
+                >
                   <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
                 </Pressable>
               </View>
@@ -282,21 +293,21 @@ export function CalendarScreen({}: Props) {
                 style={styles.input}
                 value={dateDraft}
                 onChangeText={setDateDraft}
-                placeholder="YYYY-MM-DD"
+                placeholder={t('calendar.datePlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 value={timeDraft}
                 onChangeText={setTimeDraft}
-                placeholder="Time (optional, e.g. 7:00 PM)"
+                placeholder={t('calendar.timePlaceholder')}
                 placeholderTextColor={colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 value={noteDraft}
                 onChangeText={setNoteDraft}
-                placeholder="What's this for?"
+                placeholder={t('calendar.notePlaceholder')}
                 placeholderTextColor={colors.textMuted}
                 autoFocus
               />
@@ -311,14 +322,14 @@ export function CalendarScreen({}: Props) {
                     setNoteDraft('');
                   }}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </Pressable>
                 <Pressable
                   style={[styles.saveButton, (!dateDraft.trim() || !noteDraft.trim()) && styles.saveButtonDisabled]}
                   onPress={onAddEntry}
                   disabled={!dateDraft.trim() || !noteDraft.trim()}
                 >
-                  <Text style={styles.saveButtonText}>{editingId ? 'Save' : 'Add'}</Text>
+                  <Text style={styles.saveButtonText}>{t(editingId ? 'common.save' : 'common.add')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -328,7 +339,7 @@ export function CalendarScreen({}: Props) {
               onPress={() => onSelectDay(today)}
             >
               <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
-              <Text style={styles.addRowText}>Add an entry</Text>
+              <Text style={styles.addRowText}>{t('calendar.addEntry')}</Text>
             </Pressable>
           )}
         </View>

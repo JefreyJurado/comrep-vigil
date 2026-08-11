@@ -1,4 +1,5 @@
 export interface ExaminationSection {
+  id: string;
   title: string;
   questions: string[];
 }
@@ -10,6 +11,7 @@ export interface ExaminationSection {
  */
 export const examinationOfConscience: ExaminationSection[] = [
   {
+    id: 'commandment-1',
     title: '1st Commandment — Love of God above all things',
     questions: [
       'Have you doubted or denied the existence of God, or put your trust in something other than Him?',
@@ -20,6 +22,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-2',
     title: '2nd Commandment — Reverence for God’s name',
     questions: [
       'Have you used God’s name, or the name of Jesus, carelessly or in anger?',
@@ -29,6 +32,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-3',
     title: '3rd Commandment — Keeping the Lord’s Day holy',
     questions: [
       'Have you missed Mass on a Sunday without a serious reason?',
@@ -38,6 +42,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-4',
     title: '4th Commandment — Honoring father, mother, and legitimate authority',
     questions: [
       'Have you been disrespectful, disobedient, or unkind to your parents or those who care for you?',
@@ -47,6 +52,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-5',
     title: '5th Commandment — Respect for life',
     questions: [
       'Have you harbored hatred, held a grudge, or wished harm on someone?',
@@ -57,6 +63,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-6-9',
     title: '6th and 9th Commandments — Chastity and purity of heart',
     questions: [
       'Have you been unfaithful in thought, word, or action to your spouse or to your vocation?',
@@ -67,6 +74,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-7-10',
     title: '7th and 10th Commandments — Justice, honesty, and contentment',
     questions: [
       'Have you taken, damaged, or kept something that did not belong to you?',
@@ -77,6 +85,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'commandment-8',
     title: '8th Commandment — Truthfulness',
     questions: [
       'Have you lied, exaggerated, or deceived others?',
@@ -86,6 +95,7 @@ export const examinationOfConscience: ExaminationSection[] = [
     ],
   },
   {
+    id: 'precepts',
     title: 'Precepts of the Church',
     questions: [
       'Have you missed Mass on a holy day of obligation, such as Christmas or the Solemnity of Mary, Mother of God?',

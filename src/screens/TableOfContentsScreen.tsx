@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { vigilParts, findStepIndex } from '../content';
 import { loadProgress } from '../utils/progress';
 
@@ -20,6 +21,7 @@ function matches(query: string, section: { title: string; kicker?: string }): bo
 
 export function TableOfContentsScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState('');
   const [reachedIndex, setReachedIndex] = useState(-1);
@@ -48,7 +50,7 @@ export function TableOfContentsScreen({ navigation }: Props) {
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
-          placeholder="Search prayers and readings"
+          placeholder={t('toc.searchPlaceholder')}
           placeholderTextColor={colors.textMuted}
           returnKeyType="search"
           clearButtonMode="while-editing"
@@ -78,7 +80,9 @@ export function TableOfContentsScreen({ navigation }: Props) {
             })}
           </View>
         ))}
-        {filteredParts.length === 0 ? <Text style={styles.emptyText}>No matches for “{query}”.</Text> : null}
+        {filteredParts.length === 0 ? (
+          <Text style={styles.emptyText}>{t('toc.noMatches', { query })}</Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

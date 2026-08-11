@@ -18,6 +18,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { loadProgress } from '../utils/progress';
 import { loadUserName, saveUserName } from '../utils/profile';
 import { loadIntention, saveIntention } from '../utils/intention';
@@ -32,12 +33,6 @@ import { officeChoirs } from '../content/nineOffices';
 import { SuccessPopup, useSuccessPopup } from '../components/SuccessPopup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
-
-// Non-breaking space, built from a char code rather than typed literally so
-// it can't silently get swapped back into a regular breakable space by an
-// editor/tool pass. Used to keep "of Mary" glued together so "Mary" never
-// wraps alone onto its own line.
-const NBSP = String.fromCharCode(160);
 
 function formatConfessionSummary(isoDate: string): string {
   const parsed = new Date(`${isoDate}T00:00:00`);
@@ -67,6 +62,7 @@ function computeDateLabels() {
 
 export function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [resumeIndex, setResumeIndex] = useState<number | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -176,7 +172,7 @@ export function HomeScreen({ navigation }: Props) {
     saveIntention(intentionDraft);
     Keyboard.dismiss();
     if (intentionDraft.trim()) setEditingIntention(false);
-    savedPopup.show('Intention Saved');
+    savedPopup.show(t('home.intentionSaved'));
   };
 
   const onEditIntention = () => setEditingIntention(true);
@@ -197,7 +193,7 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerIconButton}
             onPress={() => navigation.navigate('TableOfContents')}
             hitSlop={12}
-            accessibilityLabel="Contents"
+            accessibilityLabel={t('home.iconContents')}
           >
             <Ionicons name="book-outline" size={20} color={colors.textMuted} />
           </Pressable>
@@ -205,7 +201,7 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerIconButton}
             onPress={() => navigation.navigate('Calendar')}
             hitSlop={12}
-            accessibilityLabel="Calendar"
+            accessibilityLabel={t('home.iconCalendar')}
           >
             <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
           </Pressable>
@@ -213,7 +209,7 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerIconButton}
             onPress={() => navigation.navigate('Confession')}
             hitSlop={12}
-            accessibilityLabel="Confession Log"
+            accessibilityLabel={t('home.iconConfessionLog')}
           >
             <Image
               source={require('../../assets/icons/confession.png')}
@@ -225,7 +221,7 @@ export function HomeScreen({ navigation }: Props) {
             style={styles.headerIconButton}
             onPress={() => navigation.navigate('Settings')}
             hitSlop={12}
-            accessibilityLabel="Settings"
+            accessibilityLabel={t('common.settings')}
           >
             <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
           </Pressable>
@@ -236,26 +232,30 @@ export function HomeScreen({ navigation }: Props) {
           source={require('../../assets/two-hearts.png')}
           style={styles.logo}
           resizeMode="contain"
-          accessibilityLabel="The Sacred Heart of Jesus and the Immaculate Heart of Mary"
+          accessibilityLabel={t('home.twoHeartsAlt')}
         />
-        <Text style={styles.title}>Communion of Reparation</Text>
-        <Text style={styles.subtitle}>All Night Vigil Prayer Guide</Text>
-        <Text style={styles.tagline}>
-          {`First Friday – First Saturday Devotion in Honor of the Sacred Heart of Jesus and the Immaculate Heart${NBSP}of${NBSP}Mary`}
-        </Text>
+        <Text style={styles.title}>{t('home.title')}</Text>
+        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+        <Text style={styles.tagline}>{t('home.tagline')}</Text>
 
         {isVigilNight ? (
-          <Text style={styles.vigilCount}>Tonight is the ComRep Vigil</Text>
+          <Text style={styles.vigilCount}>{t('home.tonightIsVigil')}</Text>
         ) : nextVigil ? (
           <Text style={styles.vigilCount}>
-            Next vigil: {formatWithYear(nextVigil.friday)} – {formatWithYear(nextVigil.saturday)}
+            {t('home.nextVigil', {
+              friday: formatWithYear(nextVigil.friday),
+              saturday: formatWithYear(nextVigil.saturday),
+            })}
           </Text>
         ) : null}
 
         {lastConfession && (
           <Pressable onPress={() => navigation.navigate('Confession')} hitSlop={4}>
             <Text style={styles.vigilCount}>
-              Last confession: {formatConfessionSummary(lastConfession.date)} with {lastConfession.priest}
+              {t('home.lastConfession', {
+                date: formatConfessionSummary(lastConfession.date),
+                priest: lastConfession.priest,
+              })}
             </Text>
           </Pressable>
         )}
@@ -263,19 +263,19 @@ export function HomeScreen({ navigation }: Props) {
         {monthlyOffice && (
           <Pressable onPress={onPressMonthlyOffice} hitSlop={4}>
             <Text style={styles.vigilCount}>
-              This month’s Office: {monthlyOffice.name} — Choir of {monthlyOffice.choir}
+              {t('home.thisMonthsOffice', { name: monthlyOffice.name, choir: monthlyOffice.choir })}
             </Text>
           </Pressable>
         )}
 
         {editingName ? (
           <View style={styles.nameCard}>
-            <Text style={styles.nameCardLabel}>What should we call you?</Text>
+            <Text style={styles.nameCardLabel}>{t('home.whatShouldWeCallYou')}</Text>
             <TextInput
               style={styles.nameInput}
               value={nameDraft}
               onChangeText={setNameDraft}
-              placeholder="Your name"
+              placeholder={t('home.namePlaceholder')}
               placeholderTextColor={colors.textMuted}
               returnKeyType="done"
               onSubmitEditing={onSaveName}
@@ -285,22 +285,22 @@ export function HomeScreen({ navigation }: Props) {
               onPress={onSaveName}
               disabled={!nameDraft.trim()}
             >
-              <Text style={styles.primaryButtonText}>Save</Text>
+              <Text style={styles.primaryButtonText}>{t('common.save')}</Text>
             </Pressable>
           </View>
         ) : (
           name && (
             <Pressable onPress={onEditName} hitSlop={8}>
-              <Text style={styles.greeting}>Welcome back, {name}</Text>
+              <Text style={styles.greeting}>{t('home.welcomeBack', { name })}</Text>
             </Pressable>
           )
         )}
 
         <View style={styles.intentionCard}>
           <View style={styles.intentionCardHeader}>
-            <Text style={styles.intentionCardLabel}>Tonight’s Intention</Text>
+            <Text style={styles.intentionCardLabel}>{t('home.tonightsIntention')}</Text>
             <Pressable onPress={() => navigation.navigate('IntentionHistory')} hitSlop={8}>
-              <Text style={styles.intentionHistoryLink}>Past Intentions</Text>
+              <Text style={styles.intentionHistoryLink}>{t('home.pastIntentions')}</Text>
             </Pressable>
           </View>
           {editingIntention ? (
@@ -310,18 +310,18 @@ export function HomeScreen({ navigation }: Props) {
                 value={intentionDraft}
                 onChangeText={setIntentionDraft}
                 onBlur={onSaveIntention}
-                placeholder="Who or what are you praying for tonight? (optional)"
+                placeholder={t('home.intentionPlaceholder')}
                 placeholderTextColor={colors.textMuted}
                 multiline
               />
               <Pressable style={styles.intentionSaveButton} onPress={onSaveIntention}>
-                <Text style={styles.intentionSaveButtonText}>Save</Text>
+                <Text style={styles.intentionSaveButtonText}>{t('common.save')}</Text>
               </Pressable>
             </>
           ) : (
             <View style={styles.intentionStaticRow}>
               <Text style={styles.intentionStaticText}>{intentionDraft}</Text>
-              <Pressable onPress={onEditIntention} hitSlop={8} accessibilityLabel="Edit intention">
+              <Pressable onPress={onEditIntention} hitSlop={8} accessibilityLabel={t('home.editIntention')}>
                 <Ionicons name="pencil" size={16} color={colors.textMuted} />
               </Pressable>
             </View>
@@ -334,7 +334,7 @@ export function HomeScreen({ navigation }: Props) {
               style={[styles.button, styles.primaryButton]}
               onPress={() => navigation.navigate('Vigil', { startIndex: resumeIndex })}
             >
-              <Text style={styles.primaryButtonText}>Continue Vigil</Text>
+              <Text style={styles.primaryButtonText}>{t('home.continueVigil')}</Text>
               <Text style={styles.buttonSubtext}>
                 {flatSteps[resumeIndex].section.title === flatSteps[resumeIndex].partTitle
                   ? flatSteps[resumeIndex].partTitle
@@ -348,7 +348,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('Vigil', { startIndex: 0 })}
           >
             <Text style={resumeIndex === null ? styles.primaryButtonText : styles.secondaryButtonText}>
-              Pray
+              {t('home.pray')}
             </Text>
           </Pressable>
         </View>
@@ -358,8 +358,11 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.liturgicalDay}>{liturgicalDay}</Text>
           {vigilCompletions.length > 0 && (
             <Text style={styles.streakText}>
-              {vigilCompletions.length} {vigilCompletions.length === 1 ? 'vigil' : 'vigils'} prayed
-              {vigilStreak > 1 ? ` · ${vigilStreak}-month streak` : ''}
+              {t('home.vigilsPrayed', {
+                count: vigilCompletions.length,
+                word: t(vigilCompletions.length === 1 ? 'home.vigilSingular' : 'home.vigilPlural'),
+              })}
+              {vigilStreak > 1 ? ` · ${t('home.streakSuffix', { streak: vigilStreak })}` : ''}
             </Text>
           )}
         </View>
@@ -376,20 +379,12 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.noticeIconWrap}>
               <Ionicons name="information" size={26} color={colors.onAccent} />
             </View>
-            <Text style={styles.noticeTitle}>Before You Begin</Text>
-            <Text style={styles.noticeMessage}>
-              This app is meant to be an instrument of prayer, not a distraction — please use it reverently.
-            </Text>
-            <Text style={styles.noticeMessage}>
-              If your parish or chapel provides a printed vigil booklet, please follow that copy instead — its
-              wording may differ from this app.
-            </Text>
-            <Text style={styles.noticeMessage}>
-              Please avoid using your phone during the Holy Mass. At other times, keep it silent and the screen
-              dim, out of reverence for those praying beside you.
-            </Text>
+            <Text style={styles.noticeTitle}>{t('home.beforeYouBeginTitle')}</Text>
+            <Text style={styles.noticeMessage}>{t('home.notice1')}</Text>
+            <Text style={styles.noticeMessage}>{t('home.notice2')}</Text>
+            <Text style={styles.noticeMessage}>{t('home.notice3')}</Text>
             <Pressable style={styles.noticeButton} onPress={onDismissBookletNotice}>
-              <Text style={styles.noticeButtonText}>Got it</Text>
+              <Text style={styles.noticeButtonText}>{t('home.gotIt')}</Text>
             </Pressable>
           </View>
         </Animated.View>

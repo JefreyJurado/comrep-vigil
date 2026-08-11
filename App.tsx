@@ -18,6 +18,7 @@ import { IntentionHistoryScreen } from './src/screens/IntentionHistoryScreen';
 import { ExaminationScreen } from './src/screens/ExaminationScreen';
 import { fonts } from './src/theme/theme';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { LanguageProvider, useLanguage } from './src/i18n/LanguageContext';
 import { refreshVigilReminderIfNeeded } from './src/utils/reminders';
 import { initErrorReporting, wrapWithErrorReporting } from './src/utils/errorReporting';
 
@@ -36,6 +37,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
   const { colors, mode } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <NavigationContainer>
@@ -51,22 +53,26 @@ function AppNavigator() {
         <Stack.Screen
           name="TableOfContents"
           component={TableOfContentsScreen}
-          options={{ title: 'Contents' }}
+          options={{ title: t('screens.contents') }}
         />
-        <Stack.Screen name="Vigil" component={VigilScreen} options={{ title: 'Vigil' }} />
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
-        <Stack.Screen name="Hymn" component={HymnScreen} options={{ title: 'Hymn' }} />
-        <Stack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Calendar' }} />
-        <Stack.Screen name="Confession" component={ConfessionScreen} options={{ title: 'Confession' }} />
+        <Stack.Screen name="Vigil" component={VigilScreen} options={{ title: t('screens.vigil') }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('screens.settings') }} />
+        <Stack.Screen name="Hymn" component={HymnScreen} options={{ title: t('screens.hymn') }} />
+        <Stack.Screen name="Calendar" component={CalendarScreen} options={{ title: t('screens.calendar') }} />
+        <Stack.Screen
+          name="Confession"
+          component={ConfessionScreen}
+          options={{ title: t('screens.confession') }}
+        />
         <Stack.Screen
           name="IntentionHistory"
           component={IntentionHistoryScreen}
-          options={{ title: 'Past Intentions' }}
+          options={{ title: t('screens.intentionHistory') }}
         />
         <Stack.Screen
           name="Examination"
           component={ExaminationScreen}
-          options={{ title: 'Examination of Conscience' }}
+          options={{ title: t('screens.examination') }}
         />
       </Stack.Navigator>
       <StatusBar style={mode === 'night' ? 'light' : 'dark'} />
@@ -97,13 +103,15 @@ function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider>
-        <KeyboardProvider>
-          <AppNavigator />
-        </KeyboardProvider>
-      </SafeAreaProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <KeyboardProvider>
+            <AppNavigator />
+          </KeyboardProvider>
+        </SafeAreaProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

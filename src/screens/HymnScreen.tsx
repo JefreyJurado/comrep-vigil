@@ -4,16 +4,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export function HymnScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <View style={styles.content}>
         <Ionicons name="musical-notes-outline" size={40} color={colors.gold} />
-        <Text style={styles.message}>Lyrics for this hymn are coming soon.</Text>
+        <Text style={styles.message}>{t('hymn.comingSoon')}</Text>
       </View>
     </SafeAreaView>
   );

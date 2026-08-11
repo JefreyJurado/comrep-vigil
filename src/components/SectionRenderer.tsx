@@ -7,6 +7,8 @@ import { ContentBlock, DialogueLine, VigilSection } from '../types/content';
 import type { RootStackParamList } from '../navigation/types';
 import { fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { UIStringKey } from '../i18n/strings/en';
 
 // Missal convention: the congregation's response is set in bold so it's easy
 // to pick out at a glance. Everyone else — leader/reader prompts (L,
@@ -160,7 +162,9 @@ function CreditText({
   return <Text style={textStyle}>{text}</Text>;
 }
 
-function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors }) {
+type TFunction = (key: UIStringKey, vars?: Record<string, string | number>) => string;
+
+function HymnCueBlock({ styles, colors, t }: { styles: Styles; colors: ThemeColors; t: TFunction }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <View style={styles.hymnCueWrap}>
@@ -169,12 +173,12 @@ function HymnCueBlock({ styles, colors }: { styles: Styles; colors: ThemeColors 
         onPress={() => navigation.navigate('Hymn')}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel="Hymn. Tap to view lyrics."
+        accessibilityLabel={t('sectionRenderer.hymnA11y')}
       >
         <Ionicons name="musical-notes-outline" size={15} color={colors.textMuted} />
-        <Text style={styles.hymnCueText}>Hymn</Text>
+        <Text style={styles.hymnCueText}>{t('sectionRenderer.hymnLabel')}</Text>
       </Pressable>
-      <Text style={styles.hymnCueHint}>Tap “Hymn” to view the lyrics.</Text>
+      <Text style={styles.hymnCueHint}>{t('sectionRenderer.hymnHint')}</Text>
     </View>
   );
 }
@@ -185,12 +189,14 @@ function Block({
   colors,
   intention,
   centered,
+  t,
 }: {
   block: ContentBlock;
   styles: Styles;
   colors: ThemeColors;
   intention: string | null;
   centered?: boolean;
+  t: TFunction;
 }) {
   switch (block.type) {
     case 'label':
@@ -215,7 +221,7 @@ function Block({
       );
 
     case 'hymnCue':
-      return <HymnCueBlock styles={styles} colors={colors} />;
+      return <HymnCueBlock styles={styles} colors={colors} t={t} />;
 
     case 'bilingual':
       return (
@@ -311,7 +317,7 @@ function Block({
       if (!intention) return null;
       return (
         <View style={styles.intentionBlock}>
-          <Text style={styles.intentionLabel}>MY INTENTION TONIGHT</Text>
+          <Text style={styles.intentionLabel}>{t('sectionRenderer.myIntentionTonight')}</Text>
           <Text style={styles.intentionText}>{intention}</Text>
         </View>
       );
@@ -333,6 +339,7 @@ export function SectionRenderer({
   intention?: string | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
 
   return (
@@ -365,6 +372,7 @@ export function SectionRenderer({
             colors={colors}
             intention={intention}
             centered={section.centerContent}
+            t={t}
           />
         ))}
       </View>

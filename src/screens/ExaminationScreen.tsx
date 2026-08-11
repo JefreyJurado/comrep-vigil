@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { examinationOfConscience } from '../content/examinationOfConscience';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Examination'>;
@@ -14,6 +15,7 @@ const TOTAL_QUESTIONS = examinationOfConscience.reduce((sum, section) => sum + s
 
 export function ExaminationScreen({}: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
@@ -31,11 +33,8 @@ export function ExaminationScreen({}: Props) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Examination of Conscience</Text>
-        <Text style={styles.intro}>
-          Before going to Confession, take a quiet moment to reflect on each question below. Tap any that apply
-          since your last confession — this is just for your own reflection and isn’t saved.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('examination.title')}</Text>
+        <Text style={styles.intro}>{t('examination.intro')}</Text>
 
         <View style={styles.progressBar}>
           <View
@@ -43,11 +42,11 @@ export function ExaminationScreen({}: Props) {
           />
         </View>
         <Text style={styles.progressText}>
-          {checked.size} of {TOTAL_QUESTIONS} reflected on
+          {t('examination.progress', { checked: checked.size, total: TOTAL_QUESTIONS })}
         </Text>
 
         {examinationOfConscience.map((section, sectionIndex) => (
-          <View key={section.title} style={styles.card}>
+          <View key={section.id} style={styles.card}>
             <Text style={styles.commandmentTitle}>{section.title}</Text>
             {section.questions.map((question, questionIndex) => {
               const key = `${sectionIndex}-${questionIndex}`;
@@ -72,7 +71,7 @@ export function ExaminationScreen({}: Props) {
         ))}
 
         <Pressable style={styles.resetButton} onPress={onReset}>
-          <Text style={styles.resetButtonText}>Reset Checklist</Text>
+          <Text style={styles.resetButtonText}>{t('examination.resetChecklist')}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

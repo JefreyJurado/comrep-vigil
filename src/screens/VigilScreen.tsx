@@ -8,6 +8,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
 import { flatSteps } from '../content';
 import { SectionRenderer } from '../components/SectionRenderer';
 import { saveProgress } from '../utils/progress';
@@ -29,6 +30,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Vigil'>;
 
 export function VigilScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [index, setIndex] = useState(route.params.startIndex);
   const [textScale, setTextScale] = useState(TEXT_SIZE_SCALES.medium);
@@ -73,11 +75,11 @@ export function VigilScreen({ route, navigation }: Props) {
           <Pressable
             onPress={() => navigation.navigate('TableOfContents')}
             hitSlop={10}
-            accessibilityLabel="Jump to a section"
+            accessibilityLabel={t('vigil.jumpToSection')}
           >
             <Ionicons name="book-outline" size={20} color={colors.textMuted} />
           </Pressable>
-          <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={10} accessibilityLabel="Settings">
+          <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={10} accessibilityLabel={t('common.settings')}>
             <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
           </Pressable>
         </View>
@@ -91,7 +93,7 @@ export function VigilScreen({ route, navigation }: Props) {
       duration: FADE_DURATION_MS,
       useNativeDriver: false,
     }).start();
-  }, [index, colors]);
+  }, [index, colors, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -135,19 +137,19 @@ export function VigilScreen({ route, navigation }: Props) {
           onPress={goPrev}
           disabled={isFirst}
           style={[styles.arrowButton, styles.secondaryButton, styles.shadow, isFirst && styles.disabledButton]}
-          accessibilityLabel="Previous"
+          accessibilityLabel={t('vigil.previous')}
         >
           <Ionicons name="chevron-back" size={20} color={isFirst ? colors.textMuted : colors.accent} />
         </Pressable>
         {isLast ? (
           <Pressable onPress={onFinish} style={[styles.finishButton, styles.primaryButton, styles.shadow]}>
-            <Text style={styles.primaryButtonText}>Finish</Text>
+            <Text style={styles.primaryButtonText}>{t('vigil.finish')}</Text>
           </Pressable>
         ) : (
           <Pressable
             onPress={goNext}
             style={[styles.arrowButton, styles.primaryButton, styles.shadow]}
-            accessibilityLabel="Next"
+            accessibilityLabel={t('vigil.next')}
           >
             <Ionicons name="chevron-forward" size={20} color={colors.onAccent} />
           </Pressable>
@@ -159,18 +161,16 @@ export function VigilScreen({ route, navigation }: Props) {
             <View style={styles.completionIconWrap}>
               <MaterialCommunityIcons name="hands-pray" size={30} color={colors.onAccent} />
             </View>
-            <Text style={styles.completionTitle}>Vigil Complete</Text>
-            <Text style={styles.completionMessage}>
-              Thank you for keeping watch with the Sacred Heart of Jesus and the Immaculate Heart of Mary.
-            </Text>
+            <Text style={styles.completionTitle}>{t('vigil.complete')}</Text>
+            <Text style={styles.completionMessage}>{t('vigil.completeMessage')}</Text>
             {completion.intention ? (
               <Text style={styles.completionIntention}>
-                Your intention — “{completion.intention}” — has been offered.
+                {t('vigil.intentionOffered', { intention: completion.intention })}
               </Text>
             ) : null}
             <Text style={styles.completionStats}>
-              Vigil #{completion.count}
-              {completion.streak > 1 ? ` · ${completion.streak}-month streak` : ''}
+              {t('vigil.vigilNumber', { count: completion.count })}
+              {completion.streak > 1 ? t('vigil.streakSuffix', { streak: completion.streak }) : ''}
             </Text>
             <Pressable
               style={styles.completionButton}
@@ -179,7 +179,7 @@ export function VigilScreen({ route, navigation }: Props) {
                 navigation.popToTop();
               }}
             >
-              <Text style={styles.completionButtonText}>Return Home</Text>
+              <Text style={styles.completionButtonText}>{t('vigil.returnHome')}</Text>
             </Pressable>
           </View>
         </Animated.View>

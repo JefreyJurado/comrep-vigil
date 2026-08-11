@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Localization from 'expo-localization';
+import { AVAILABLE_LANGUAGES, Language } from '../i18n/languages';
 
 const KEEP_AWAKE_KEY = 'comrep-vigil:keep-screen-awake';
 
@@ -29,13 +31,6 @@ export const TEXT_SIZE_SCALES: Record<TextSize, number> = {
 };
 
 export const TEXT_SIZE_ORDER: TextSize[] = ['small', 'medium', 'large', 'extraLarge'];
-
-export const TEXT_SIZE_LABELS: Record<TextSize, string> = {
-  small: 'Small',
-  medium: 'Medium',
-  large: 'Large',
-  extraLarge: 'Extra Large',
-};
 
 const TEXT_SIZE_KEY = 'comrep-vigil:text-size';
 const DEFAULT_TEXT_SIZE: TextSize = 'medium';
@@ -74,6 +69,33 @@ export async function loadThemeMode(): Promise<ThemeMode> {
 export async function saveThemeMode(mode: ThemeMode): Promise<void> {
   try {
     await AsyncStorage.setItem(THEME_MODE_KEY, mode);
+  } catch {
+    // non-fatal
+  }
+}
+
+const LANGUAGE_KEY = 'comrep-vigil:language';
+const DEFAULT_LANGUAGE: Language = 'en';
+
+function detectDefaultLanguage(): Language {
+  const deviceLanguageCode = Localization.getLocales()[0]?.languageCode;
+  const match = AVAILABLE_LANGUAGES.find((lang) => lang === deviceLanguageCode);
+  return match ?? DEFAULT_LANGUAGE;
+}
+
+export async function loadLanguage(): Promise<Language> {
+  try {
+    const value = await AsyncStorage.getItem(LANGUAGE_KEY);
+    if (value && (AVAILABLE_LANGUAGES as string[]).includes(value)) return value as Language;
+    return detectDefaultLanguage();
+  } catch {
+    return DEFAULT_LANGUAGE;
+  }
+}
+
+export async function saveLanguage(language: Language): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LANGUAGE_KEY, language);
   } catch {
     // non-fatal
   }

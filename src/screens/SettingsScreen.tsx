@@ -7,6 +7,9 @@ import type { RootStackParamList } from '../navigation/types';
 import { ThemedSwitch } from '../components/ThemedSwitch';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../i18n/LanguageContext';
+import { AVAILABLE_LANGUAGES, LANGUAGE_LABELS } from '../i18n/languages';
+import { UIStringKey } from '../i18n/strings/en';
 import { clearProgress } from '../utils/progress';
 import { clearVigilCompletions } from '../utils/vigilStats';
 import {
@@ -15,7 +18,6 @@ import {
   loadTextSize,
   saveTextSize,
   TEXT_SIZE_ORDER,
-  TEXT_SIZE_LABELS,
   type TextSize,
 } from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
@@ -26,8 +28,16 @@ import appConfig from '../../app.json';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
+const TEXT_SIZE_KEYS: Record<TextSize, UIStringKey> = {
+  small: 'settings.textSizeSmall',
+  medium: 'settings.textSizeMedium',
+  large: 'settings.textSizeLarge',
+  extraLarge: 'settings.textSizeExtraLarge',
+};
+
 export function SettingsScreen({ navigation }: Props) {
   const { colors, mode, setMode } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [keepAwake, setKeepAwake] = useState(false);
   const [reminder, setReminder] = useState(false);
@@ -89,11 +99,11 @@ export function SettingsScreen({ navigation }: Props) {
       setReminder(granted);
       if (!granted) {
         Alert.alert(
-          'Notifications Disabled',
-          'ComRep Vigil needs notification permission to remind you before each First Friday vigil. You can enable it in your device settings.',
+          t('settings.notificationsDisabledTitle'),
+          t('settings.notificationsDisabledMessage'),
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('settings.openSettings'), onPress: () => Linking.openSettings() },
           ]
         );
       }
@@ -105,17 +115,17 @@ export function SettingsScreen({ navigation }: Props) {
 
   const onResetProgress = () => {
     Alert.alert(
-      'Reset Vigil Progress?',
-      'This clears where you left off and your vigil streak/prayed history. The next time you open the vigil, it will start from the beginning.',
+      t('settings.resetProgressConfirmTitle'),
+      t('settings.resetProgressConfirmMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Reset',
+          text: t('settings.reset'),
           style: 'destructive',
           onPress: async () => {
             await clearProgress();
             await clearVigilCompletions();
-            Alert.alert('Progress Reset', 'Your saved place and vigil history have been cleared.');
+            Alert.alert(t('settings.progressResetTitle'), t('settings.progressResetMessage'));
           },
         },
       ]
@@ -127,25 +137,22 @@ export function SettingsScreen({ navigation }: Props) {
   };
 
   const onSendFeedback = () => {
-    const subject = encodeURIComponent('ComRep Vigil Feedback');
+    const subject = encodeURIComponent(t('settings.feedbackEmailSubject'));
     const body = encodeURIComponent(`\n\n—\nVersion ${appConfig.expo.version}`);
     Linking.openURL(`mailto:apollojudge0@gmail.com?subject=${subject}&body=${body}`).catch(() => {
-      Alert.alert(
-        'No Email App Found',
-        'Please send your feedback directly to apollojudge0@gmail.com.'
-      );
+      Alert.alert(t('settings.noEmailAppTitle'), t('settings.noEmailAppMessage'));
     });
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Vigil</Text>
+        <Text style={styles.sectionTitle}>{t('settings.vigilSection')}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
             <View style={styles.rowText}>
-              <Text style={styles.rowLabel}>Keep Screen Awake</Text>
-              <Text style={styles.rowHint}>Prevents the screen from locking while you pray through the vigil.</Text>
+              <Text style={styles.rowLabel}>{t('settings.keepScreenAwake')}</Text>
+              <Text style={styles.rowHint}>{t('settings.keepScreenAwakeHint')}</Text>
             </View>
             <ThemedSwitch value={keepAwake} onValueChange={onToggleKeepAwake} colors={colors} />
           </View>
@@ -154,16 +161,37 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={styles.card}>
           <View style={styles.row}>
             <View style={styles.rowText}>
-              <Text style={styles.rowLabel}>Night Mode</Text>
-              <Text style={styles.rowHint}>A dimmer palette for praying in a dark chapel or bedroom.</Text>
+              <Text style={styles.rowLabel}>{t('settings.nightMode')}</Text>
+              <Text style={styles.rowHint}>{t('settings.nightModeHint')}</Text>
             </View>
             <ThemedSwitch value={mode === 'night'} onValueChange={onToggleNightMode} colors={colors} />
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.rowLabel}>Text Size</Text>
-          <Text style={styles.rowHint}>Adjusts the size of the prayer text while you pray through the vigil.</Text>
+          <Text style={styles.rowLabel}>{t('settings.language')}</Text>
+          <Text style={styles.rowHint}>{t('settings.languageHint')}</Text>
+          <View style={styles.textSizeRow}>
+            {AVAILABLE_LANGUAGES.map((lang) => {
+              const selected = lang === language;
+              return (
+                <Pressable
+                  key={lang}
+                  style={[styles.textSizePill, selected && styles.textSizePillSelected]}
+                  onPress={() => setLanguage(lang)}
+                >
+                  <Text style={[styles.textSizePillText, selected && styles.textSizePillTextSelected]}>
+                    {LANGUAGE_LABELS[lang]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.rowLabel}>{t('settings.textSize')}</Text>
+          <Text style={styles.rowHint}>{t('settings.textSizeHint')}</Text>
           <View style={styles.textSizeRow}>
             {TEXT_SIZE_ORDER.map((size) => {
               const selected = size === textSize;
@@ -174,7 +202,7 @@ export function SettingsScreen({ navigation }: Props) {
                   onPress={() => onSelectTextSize(size)}
                 >
                   <Text style={[styles.textSizePillText, selected && styles.textSizePillTextSelected]}>
-                    {TEXT_SIZE_LABELS[size]}
+                    {t(TEXT_SIZE_KEYS[size])}
                   </Text>
                 </Pressable>
               );
@@ -183,11 +211,8 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.rowLabel}>Monthly Office</Text>
-          <Text style={styles.rowHint}>
-            St. Margaret Mary’s traditional practice: take one office for {currentMonthLabel}, in union with its
-            choir of angels.
-          </Text>
+          <Text style={styles.rowLabel}>{t('settings.monthlyOffice')}</Text>
+          <Text style={styles.rowHint}>{t('settings.monthlyOfficeHint', { month: currentMonthLabel })}</Text>
           <View style={styles.officeGrid}>
             {officeChoirs.map(({ number, name }) => {
               const selected = number === monthlyOfficeNumber;
@@ -207,34 +232,32 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={styles.card}>
           <View style={styles.row}>
             <View style={styles.rowText}>
-              <Text style={styles.rowLabel}>Vigil Reminder</Text>
-              <Text style={styles.rowHint}>
-                A reminder the evening before every First Friday, when the vigil begins.
-              </Text>
+              <Text style={styles.rowLabel}>{t('settings.vigilReminder')}</Text>
+              <Text style={styles.rowHint}>{t('settings.vigilReminderHint')}</Text>
             </View>
             <ThemedSwitch value={reminder} onValueChange={onToggleReminder} colors={colors} />
           </View>
         </View>
 
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onResetProgress}>
-          <Text style={styles.rowLabel}>Reset Vigil Progress</Text>
-          <Text style={styles.rowHint}>Clears your saved place and vigil streak/history.</Text>
+          <Text style={styles.rowLabel}>{t('settings.resetProgress')}</Text>
+          <Text style={styles.rowHint}>{t('settings.resetProgressHint')}</Text>
         </Pressable>
 
-        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.sectionTitle}>{t('settings.aboutSection')}</Text>
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onViewAcknowledgements}>
-          <Text style={styles.rowLabel}>Acknowledgements</Text>
-          <Text style={styles.rowHint}>Sources, credits, and copyright information.</Text>
+          <Text style={styles.rowLabel}>{t('settings.acknowledgements')}</Text>
+          <Text style={styles.rowHint}>{t('settings.acknowledgementsHint')}</Text>
         </Pressable>
 
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onSendFeedback}>
-          <Text style={styles.rowLabel}>Send Feedback</Text>
-          <Text style={styles.rowHint}>Found a bug or have a suggestion? Let us know by email.</Text>
+          <Text style={styles.rowLabel}>{t('settings.sendFeedback')}</Text>
+          <Text style={styles.rowHint}>{t('settings.sendFeedbackHint')}</Text>
         </Pressable>
 
         <View style={styles.card}>
-          <Text style={styles.rowLabel}>Communion of Reparation</Text>
-          <Text style={styles.rowHint}>All Night Vigil Prayer Guide · Version {appConfig.expo.version}</Text>
+          <Text style={styles.rowLabel}>{t('settings.appName')}</Text>
+          <Text style={styles.rowHint}>{t('settings.appVersion', { version: appConfig.expo.version })}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
