@@ -50,7 +50,16 @@
       ],
       "expo-notifications",
       "./plugins/withReleaseSigning.js",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
     ]
   }
 }
