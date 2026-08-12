@@ -50,6 +50,7 @@
       ],
       "expo-notifications",
       "./plugins/withReleaseSigning.js",
+      "./plugins/withR8FullOptimization.js",
       "@sentry/react-native",
       [
         "expo-build-properties",
