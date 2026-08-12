@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "org.twohearts.comrepvigil",
-      "versionCode": 13,
+      "versionCode": 14,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
