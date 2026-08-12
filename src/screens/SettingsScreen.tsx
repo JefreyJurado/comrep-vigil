@@ -8,7 +8,7 @@ import { ThemedSwitch } from '../components/ThemedSwitch';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { AVAILABLE_LANGUAGES, LANGUAGE_LABELS } from '../i18n/languages';
+import { ALL_LANGUAGES, AVAILABLE_LANGUAGES, LANGUAGE_LABELS } from '../i18n/languages';
 import { UIStringKey } from '../i18n/strings/en';
 import { clearProgress } from '../utils/progress';
 import { clearVigilCompletions } from '../utils/vigilStats';
@@ -22,8 +22,7 @@ import {
 } from '../utils/settings';
 import { loadReminderEnabled, enableVigilReminder, disableVigilReminder } from '../utils/reminders';
 import { currentMonthKey, loadMonthlyOffice, saveMonthlyOffice, clearMonthlyOffice } from '../utils/monthlyOffice';
-import { findStepIndex } from '../content';
-import { officeChoirs } from '../content/nineOffices';
+import { findStepIndex, getOfficeChoirs } from '../content';
 import appConfig from '../../app.json';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -39,6 +38,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { colors, mode, setMode } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const officeChoirs = useMemo(() => getOfficeChoirs(language), [language]);
   const [keepAwake, setKeepAwake] = useState(false);
   const [reminder, setReminder] = useState(false);
   const [textSize, setTextSize] = useState<TextSize>('medium');
@@ -172,21 +172,37 @@ export function SettingsScreen({ navigation }: Props) {
           <Text style={styles.rowLabel}>{t('settings.language')}</Text>
           <Text style={styles.rowHint}>{t('settings.languageHint')}</Text>
           <View style={styles.textSizeRow}>
-            {AVAILABLE_LANGUAGES.map((lang) => {
+            {ALL_LANGUAGES.map((lang) => {
               const selected = lang === language;
+              const available = AVAILABLE_LANGUAGES.includes(lang);
               return (
                 <Pressable
                   key={lang}
-                  style={[styles.textSizePill, selected && styles.textSizePillSelected]}
+                  disabled={!available}
+                  style={[
+                    styles.textSizePill,
+                    selected && styles.textSizePillSelected,
+                    !available && styles.textSizePillDisabled,
+                  ]}
                   onPress={() => setLanguage(lang)}
                 >
-                  <Text style={[styles.textSizePillText, selected && styles.textSizePillTextSelected]}>
+                  <Text
+                    style={[
+                      styles.textSizePillText,
+                      selected && styles.textSizePillTextSelected,
+                      !available && styles.textSizePillTextDisabled,
+                    ]}
+                  >
                     {LANGUAGE_LABELS[lang]}
                   </Text>
+                  {!available && (
+                    <Text style={styles.textSizePillBadge}>{t('settings.languagePendingReview')}</Text>
+                  )}
                 </Pressable>
               );
             })}
           </View>
+          <Text style={styles.languageDisclaimer}>{t('settings.languageDisclaimer')}</Text>
         </View>
 
         <View style={styles.card}>
@@ -238,6 +254,14 @@ export function SettingsScreen({ navigation }: Props) {
             <ThemedSwitch value={reminder} onValueChange={onToggleReminder} colors={colors} />
           </View>
         </View>
+
+        <Pressable
+          style={[styles.card, styles.pressableRow]}
+          onPress={() => navigation.navigate('VigilJournal')}
+        >
+          <Text style={styles.rowLabel}>{t('screens.vigilJournal')}</Text>
+          <Text style={styles.rowHint}>{t('settings.vigilJournalHint')}</Text>
+        </Pressable>
 
         <Pressable style={[styles.card, styles.pressableRow]} onPress={onResetProgress}>
           <Text style={styles.rowLabel}>{t('settings.resetProgress')}</Text>
@@ -320,6 +344,12 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
       marginTop: spacing.sm,
     },
+    languageDisclaimer: {
+      fontFamily: fonts.italic,
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: spacing.sm,
+    },
     officeGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -368,6 +398,19 @@ function createStyles(colors: ThemeColors) {
     },
     textSizePillTextSelected: {
       color: colors.onAccent,
+    },
+    textSizePillDisabled: {
+      opacity: 0.5,
+    },
+    textSizePillTextDisabled: {
+      color: colors.textMuted,
+    },
+    textSizePillBadge: {
+      fontFamily: fonts.italic,
+      fontSize: 11,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: 2,
     },
   });
 }

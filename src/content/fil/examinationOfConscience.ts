@@ -99,7 +99,7 @@ export const examinationOfConscience_fil: ExaminationSection[] = [
       'Nakaligtaan mo ba ang Misa sa isang araw ng obligasyon, tulad ng Pasko o ang Kapistahan ni Maria, Ina ng Diyos?',
       'Higit na isang taon na ba mula noong huli mong kumpisal?',
       'Iniwasan o ipinagpaliban mo ba ang kumpisal dahil sa hiya o takot, sa halip na magtiwala sa awa ng Diyos?',
-      'Napabayaan mo bang tumanggap ng Banal na Komunyon sa panahon ng Pasko ng Pagkabuhay (ang iyong "obligasyon sa Pasko ng Pagkabuhay")?',
+      'Napabayaan mo bang tumanggap ng Banal na Komunyon sa panahon ng Pasko ng Pagkabuhay (ang iyong “obligasyon sa Pasko ng Pagkabuhay”)?',
       'Tumanggap ka ba ng Komunyon habang alam mong may hindi pa naikukumpisal na mortal na kasalanan?',
       'Hindi mo ba naisagawa ang mga araw ng pag-aayuno at pag-iwas sa laman ng Simbahan, tulad ng Miyerkules ng Abo at Biyernes Santo, o kumain ka ng karne tuwing Biyernes ng Kuwaresma nang walang matibay na dahilan?',
       'Napabayaan mo bang suportahan ang iyong parokya o ang Simbahan gamit ang iyong oras, talento, o kayamanan, ayon sa iyong kakayahan?',

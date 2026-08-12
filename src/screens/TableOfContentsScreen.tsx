@@ -8,7 +8,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { vigilParts, findStepIndex } from '../content';
+import { getVigilParts, findStepIndex } from '../content';
 import { loadProgress } from '../utils/progress';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TableOfContents'>;
@@ -21,8 +21,9 @@ function matches(query: string, section: { title: string; kicker?: string }): bo
 
 export function TableOfContentsScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const vigilParts = useMemo(() => getVigilParts(language), [language]);
   const [query, setQuery] = useState('');
   const [reachedIndex, setReachedIndex] = useState(-1);
 

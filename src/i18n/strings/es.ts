@@ -57,6 +57,8 @@ export const es: Partial<Record<UIStringKey, string>> = {
   'settings.nightModeHint': 'Una paleta más oscura para orar en una capilla o habitación oscura.',
   'settings.language': 'Idioma',
   'settings.languageHint': 'Elige el idioma de la aplicación y sus oraciones.',
+  'settings.languageDisclaimer': 'El español y el filipino son un primer borrador y aún no han sido revisados para verificar su exactitud.',
+  'settings.languagePendingReview': 'En revisión',
   'settings.textSize': 'Tamaño del Texto',
   'settings.textSizeHint': 'Ajusta el tamaño del texto de las oraciones mientras oras durante la vigilia.',
   'settings.textSizeSmall': 'Pequeño',

@@ -18,7 +18,9 @@ export const en = {
   'screens.calendar': 'Calendar',
   'screens.confession': 'Confession',
   'screens.intentionHistory': 'Past Intentions',
+  'screens.savedIntentions': 'My Intentions',
   'screens.examination': 'Examination of Conscience',
+  'screens.vigilJournal': 'Vigil Journal',
 
   // Home screen
   'home.title': 'Communion of Reparation',
@@ -37,6 +39,7 @@ export const en = {
   'home.welcomeBack': 'Welcome back, {name}',
   'home.tonightsIntention': "Tonight’s Intention",
   'home.pastIntentions': 'Past Intentions',
+  'home.myIntentions': 'My Intentions',
   'home.intentionPlaceholder': 'Who or what are you praying for tonight? (optional)',
   'home.editIntention': 'Edit intention',
   'home.continueVigil': 'Continue Vigil',
@@ -60,6 +63,8 @@ export const en = {
   'settings.nightModeHint': 'A dimmer palette for praying in a dark chapel or bedroom.',
   'settings.language': 'Language',
   'settings.languageHint': 'Choose the language for the app and its prayers.',
+  'settings.languageDisclaimer': 'Spanish and Filipino are an early first draft and have not yet been reviewed for accuracy.',
+  'settings.languagePendingReview': 'Pending review',
   'settings.textSize': 'Text Size',
   'settings.textSizeHint': 'Adjusts the size of the prayer text while you pray through the vigil.',
   'settings.textSizeSmall': 'Small',
@@ -70,6 +75,7 @@ export const en = {
   'settings.monthlyOfficeHint': "St. Margaret Mary’s traditional practice: take one office for {month}, in union with its choir of angels.",
   'settings.vigilReminder': 'Vigil Reminder',
   'settings.vigilReminderHint': 'A reminder the evening before every First Friday, when the vigil begins.',
+  'settings.vigilJournalHint': 'Reflections you’ve written after finishing a vigil.',
   'settings.resetProgress': 'Reset Vigil Progress',
   'settings.resetProgressHint': 'Clears your saved place and vigil streak/history.',
   'settings.aboutSection': 'About',
@@ -135,7 +141,10 @@ export const en = {
   'vigil.intentionOffered': 'Your intention — “{intention}” — has been offered.',
   'vigil.vigilNumber': 'Vigil #{count}',
   'vigil.streakSuffix': ' · {streak}-month streak',
+  'vigil.milestone': "Milestone reached — {count} vigils prayed.",
+  'vigil.reflectionPlaceholder': 'Add a reflection about tonight (optional)',
   'vigil.returnHome': 'Return Home',
+  'vigil.continueToDevotions': 'Continue to the additional devotions →',
 
   // Examination of Conscience screen
   'examination.title': 'Examination of Conscience',
@@ -149,6 +158,17 @@ export const en = {
 
   // Intention History screen
   'intentionHistory.empty': "No intentions logged yet. Whatever you write in Tonight’s Intention is saved here once you finish a vigil.",
+
+  // Saved Intentions screen
+  'savedIntentions.hint': "Keep a running list of people or causes you pray for, and reuse one as tonight's intention.",
+  'savedIntentions.addPlaceholder': 'Add an intention to pray for regularly…',
+  'savedIntentions.empty': 'No saved intentions yet. Add one above to reuse it across future vigils.',
+  'savedIntentions.markAnswered': 'Mark as answered',
+  'savedIntentions.answeredOn': 'Answered {date}',
+  'savedIntentions.useTonight': "Pray for this tonight",
+
+  // Vigil Journal screen
+  'vigilJournal.empty': 'No reflections yet. After you finish a vigil, anything you write there is saved here.',
 
   // Hymn screen
   'hymn.comingSoon': 'Lyrics for this hymn are coming soon.',

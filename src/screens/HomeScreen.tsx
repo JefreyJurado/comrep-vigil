@@ -28,8 +28,7 @@ import { getLiturgicalDayLabel } from '../utils/liturgicalCalendar';
 import { msUntilNextMidnight } from '../utils/dateTiming';
 import { loadCurrentMonthOffice } from '../utils/monthlyOffice';
 import { loadVigilCompletions, computeStreak } from '../utils/vigilStats';
-import { flatSteps, findStepIndex } from '../content';
-import { officeChoirs } from '../content/nineOffices';
+import { getFlatSteps, findStepIndex, getOfficeChoirs } from '../content';
 import { SuccessPopup, useSuccessPopup } from '../components/SuccessPopup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -62,8 +61,10 @@ function computeDateLabels() {
 
 export function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const flatSteps = useMemo(() => getFlatSteps(language), [language]);
+  const officeChoirs = useMemo(() => getOfficeChoirs(language), [language]);
   const [resumeIndex, setResumeIndex] = useState<number | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
@@ -299,9 +300,14 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.intentionCard}>
           <View style={styles.intentionCardHeader}>
             <Text style={styles.intentionCardLabel}>{t('home.tonightsIntention')}</Text>
-            <Pressable onPress={() => navigation.navigate('IntentionHistory')} hitSlop={8}>
-              <Text style={styles.intentionHistoryLink}>{t('home.pastIntentions')}</Text>
-            </Pressable>
+            <View style={styles.intentionCardLinks}>
+              <Pressable onPress={() => navigation.navigate('SavedIntentions')} hitSlop={8}>
+                <Text style={styles.intentionHistoryLink}>{t('home.myIntentions')}</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('IntentionHistory')} hitSlop={8}>
+                <Text style={styles.intentionHistoryLink}>{t('home.pastIntentions')}</Text>
+              </Pressable>
+            </View>
           </View>
           {editingIntention ? (
             <>
@@ -502,6 +508,10 @@ function createStyles(colors: ThemeColors) {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  intentionCardLinks: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   intentionCardLabel: {
     fontFamily: fonts.bodySemiBold,

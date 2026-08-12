@@ -11,7 +11,7 @@ export const introPart: VigilPart = {
       blocks: [
         {
           type: 'note',
-          text: 'A note on this app’s wording: some prayers here read a little differently from the printed booklet. Official liturgical translations — such as the Roman Missal and the Liturgy of the Hours — are copyrighted by their publishers and require written permission to reproduce. Where permission has not yet been secured, this app uses an original rendering that keeps the same meaning and intention rather than the official wording. The psalms in the Saturday Office of Readings use the Revised Grail Psalms translation (© 2010 Conception Abbey/The Grail, admin. GIA Publications, Inc.); permission for this use has been requested but not yet granted.',
+          text: 'A note on this app’s wording: some prayers here read a little differently from the printed booklet. Official liturgical translations — such as the Roman Missal and the Liturgy of the Hours — are copyrighted by their publishers and require written permission to reproduce. Where permission has not yet been secured, this app uses an original rendering that keeps the same meaning and intention rather than the official wording. The psalms in the Saturday Office of Readings use the Revised Grail Psalms translation (© 2010 Conception Abbey/The Grail, admin. GIA Publications, Inc.); permission for this use has been requested but not yet granted. The Spanish and Filipino translations throughout the app are likewise original renderings, prepared for this project rather than drawn from any official published edition, and have not yet been reviewed for accuracy.',
         },
         {
           type: 'credit',

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,15 +9,18 @@ import type { RootStackParamList } from '../navigation/types';
 import { contentMaxWidth, fonts, radii, spacing, ThemeColors } from '../theme/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../i18n/LanguageContext';
-import { flatSteps } from '../content';
+import { getFlatSteps, findStepIndex } from '../content';
 import { SectionRenderer } from '../components/SectionRenderer';
 import { saveProgress } from '../utils/progress';
 import { loadKeepScreenAwake, loadTextSize, TEXT_SIZE_SCALES } from '../utils/settings';
 import { loadIntention, clearIntention, archiveIntention } from '../utils/intention';
 import { computeStreak, recordVigilCompletion } from '../utils/vigilStats';
+import { addJournalEntry } from '../utils/vigilJournal';
 
 const KEEP_AWAKE_TAG = 'vigil-screen';
 const FADE_DURATION_MS = 220;
+// Round numbers worth pausing on, rather than treating every vigil the same.
+const MILESTONE_COUNTS = [1, 5, 10, 25, 50, 100, 200, 365];
 
 function toIsoDate(date: Date): string {
   const y = date.getFullYear();
@@ -30,20 +33,32 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Vigil'>;
 
 export function VigilScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const flatSteps = useMemo(() => getFlatSteps(language), [language]);
   const [index, setIndex] = useState(route.params.startIndex);
   const [textScale, setTextScale] = useState(TEXT_SIZE_SCALES.medium);
   const [intention, setIntention] = useState<string | null>(null);
-  const [completion, setCompletion] = useState<{ count: number; streak: number; intention: string | null } | null>(
-    null
-  );
+  const [completion, setCompletion] = useState<{
+    date: string;
+    count: number;
+    streak: number;
+    intention: string | null;
+    milestone: boolean;
+  } | null>(null);
+  const [reflectionDraft, setReflectionDraft] = useState('');
+  const [finishedThisSession, setFinishedThisSession] = useState(false);
   const completionOpacity = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const step = flatSteps[index];
   const isFirst = index === 0;
-  const isLast = index === flatSteps.length - 1;
+  // The guided vigil proper ends with the Act of Consecration; the Confession
+  // Guide, Devotional References, and Seven Sorrows after it are optional
+  // devotions, not part of the core vigil, so they don't re-trigger Finish.
+  const vigilEndIndex = useMemo(() => findStepIndex('consecration'), []);
+  const isFinishPoint = index === vigilEndIndex && !finishedThisSession;
+  const isTrulyLast = index === flatSteps.length - 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -114,9 +129,30 @@ export function VigilScreen({ route, navigation }: Props) {
     if (intention) archiveIntention(intention, today);
     const completions = await recordVigilCompletion(today);
     clearIntention();
-    setCompletion({ count: completions.length, streak: computeStreak(completions), intention });
+    setFinishedThisSession(true);
+    setCompletion({
+      date: today,
+      count: completions.length,
+      streak: computeStreak(completions),
+      intention,
+      milestone: MILESTONE_COUNTS.includes(completions.length),
+    });
     completionOpacity.setValue(0);
     Animated.timing(completionOpacity, { toValue: 1, duration: 260, useNativeDriver: false }).start();
+  };
+
+  const onReturnHome = () => {
+    if (completion) addJournalEntry(completion.date, reflectionDraft);
+    setCompletion(null);
+    navigation.popToTop();
+  };
+
+  // Saves the reflection but stays on the Vigil screen, past Consecration,
+  // so the reader can keep going into the optional devotions that follow.
+  const onContinueToDevotions = () => {
+    if (completion) addJournalEntry(completion.date, reflectionDraft);
+    setCompletion(null);
+    setReflectionDraft('');
   };
 
   return (
@@ -141,9 +177,16 @@ export function VigilScreen({ route, navigation }: Props) {
         >
           <Ionicons name="chevron-back" size={20} color={isFirst ? colors.textMuted : colors.accent} />
         </Pressable>
-        {isLast ? (
+        {isFinishPoint ? (
           <Pressable onPress={onFinish} style={[styles.finishButton, styles.primaryButton, styles.shadow]}>
             <Text style={styles.primaryButtonText}>{t('vigil.finish')}</Text>
+          </Pressable>
+        ) : isTrulyLast ? (
+          <Pressable
+            onPress={() => navigation.popToTop()}
+            style={[styles.finishButton, styles.primaryButton, styles.shadow]}
+          >
+            <Text style={styles.primaryButtonText}>{t('vigil.returnHome')}</Text>
           </Pressable>
         ) : (
           <Pressable
@@ -172,14 +215,25 @@ export function VigilScreen({ route, navigation }: Props) {
               {t('vigil.vigilNumber', { count: completion.count })}
               {completion.streak > 1 ? t('vigil.streakSuffix', { streak: completion.streak }) : ''}
             </Text>
-            <Pressable
-              style={styles.completionButton}
-              onPress={() => {
-                setCompletion(null);
-                navigation.popToTop();
-              }}
-            >
+            {completion.milestone && (
+              <View style={styles.milestoneRow}>
+                <Ionicons name="ribbon-outline" size={16} color={colors.gold} />
+                <Text style={styles.completionMilestone}>{t('vigil.milestone', { count: completion.count })}</Text>
+              </View>
+            )}
+            <TextInput
+              style={styles.reflectionInput}
+              value={reflectionDraft}
+              onChangeText={setReflectionDraft}
+              placeholder={t('vigil.reflectionPlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              multiline
+            />
+            <Pressable style={styles.completionButton} onPress={onReturnHome}>
               <Text style={styles.completionButtonText}>{t('vigil.returnHome')}</Text>
+            </Pressable>
+            <Pressable onPress={onContinueToDevotions} hitSlop={8}>
+              <Text style={styles.continueDevotionsLink}>{t('vigil.continueToDevotions')}</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -328,6 +382,33 @@ function createStyles(colors: ThemeColors) {
       textAlign: 'center',
       marginTop: spacing.xs,
     },
+    milestoneRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      marginTop: spacing.xs,
+    },
+    completionMilestone: {
+      fontFamily: fonts.italicMedium,
+      fontSize: 14,
+      color: colors.gold,
+      textAlign: 'center',
+    },
+    reflectionInput: {
+      width: '100%',
+      minHeight: 60,
+      marginTop: spacing.md,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.sm,
+      fontFamily: fonts.italic,
+      fontSize: 15,
+      color: colors.text,
+      textAlignVertical: 'top',
+    },
     completionButton: {
       marginTop: spacing.md,
       width: '100%',
@@ -341,6 +422,13 @@ function createStyles(colors: ThemeColors) {
       fontFamily: fonts.bodySemiBold,
       color: colors.onAccent,
       fontSize: 16,
+    },
+    continueDevotionsLink: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: 14,
+      color: colors.accent,
+      textAlign: 'center',
+      marginTop: spacing.sm,
     },
   });
 }

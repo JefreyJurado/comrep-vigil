@@ -128,7 +128,7 @@ export const benedictionPart_es: LocalizedPart = {
           { type: 'label', text: 'Reposición del Santísimo Sacramento' },
           {
             type: 'note',
-            text: 'El presidente coloca de nuevo el Santísimo Sacramento en el sagrario y hace una genuflexión mientras se canta "Oh Sacramento Santísimo" u otro himno eucarístico apropiado. Luego todos los ministros salen del santuario.',
+            text: 'El presidente coloca de nuevo el Santísimo Sacramento en el sagrario y hace una genuflexión mientras se canta “Oh Sacramento Santísimo” u otro himno eucarístico apropiado. Luego todos los ministros salen del santuario.',
           },
           { type: 'label', text: 'Oh Sacramento Santísimo' },
           {

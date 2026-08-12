@@ -15,7 +15,9 @@ import { HymnScreen } from './src/screens/HymnScreen';
 import { CalendarScreen } from './src/screens/CalendarScreen';
 import { ConfessionScreen } from './src/screens/ConfessionScreen';
 import { IntentionHistoryScreen } from './src/screens/IntentionHistoryScreen';
+import { SavedIntentionsScreen } from './src/screens/SavedIntentionsScreen';
 import { ExaminationScreen } from './src/screens/ExaminationScreen';
+import { VigilJournalScreen } from './src/screens/VigilJournalScreen';
 import { fonts } from './src/theme/theme';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { LanguageProvider, useLanguage } from './src/i18n/LanguageContext';
@@ -70,9 +72,19 @@ function AppNavigator() {
           options={{ title: t('screens.intentionHistory') }}
         />
         <Stack.Screen
+          name="SavedIntentions"
+          component={SavedIntentionsScreen}
+          options={{ title: t('screens.savedIntentions') }}
+        />
+        <Stack.Screen
           name="Examination"
           component={ExaminationScreen}
           options={{ title: t('screens.examination') }}
+        />
+        <Stack.Screen
+          name="VigilJournal"
+          component={VigilJournalScreen}
+          options={{ title: t('screens.vigilJournal') }}
         />
       </Stack.Navigator>
       <StatusBar style={mode === 'night' ? 'light' : 'dark'} />

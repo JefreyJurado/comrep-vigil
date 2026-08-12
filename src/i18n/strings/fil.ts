@@ -60,6 +60,8 @@ export const fil: Partial<Record<UIStringKey, string>> = {
   'settings.nightModeHint': 'Mas madilim na kulay para sa pananalangin sa madilim na kapilya o silid.',
   'settings.language': 'Wika',
   'settings.languageHint': 'Piliin ang wika ng app at ng mga panalangin dito.',
+  'settings.languageDisclaimer': 'Ang Espanyol at Filipino ay unang draft pa lamang at hindi pa nasusuri para sa kawastuhan.',
+  'settings.languagePendingReview': 'Isinusuri pa',
   'settings.textSize': 'Laki ng Teksto',
   'settings.textSizeHint': 'Inaayos nito ang laki ng teksto ng panalangin habang dumadaan ka sa bigilya.',
   'settings.textSizeSmall': 'Maliit',

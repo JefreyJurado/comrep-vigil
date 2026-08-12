@@ -118,7 +118,7 @@ export const benedictionPart_fil: LocalizedPart = {
               'Purihin ang Kanyang Kamahal-mahalang Dugo.',
               'Purihin si Hesus sa Kabanal-banalang Sakramento ng Altar.',
               'Purihin ang dakilang Ina ng Diyos, si Mariang Kabanal-banalan.',
-              'Purihin ang kanyang Banal at Immaculadang Paglilihi.',
+              'Purihin ang kanyang Banal at Kalinis-linisang Paglilihi.',
               'Purihin ang kanyang maluwalhating Pag-akyat sa Langit.',
               'Purihin ang pangalan ni Maria, Birhen at Ina.',
               'Purihin si San Jose, ang kanyang pinakadalisay na kabiyak.',
@@ -128,7 +128,7 @@ export const benedictionPart_fil: LocalizedPart = {
           { type: 'label', text: 'Muling Paglalagay ng Banal na Sakramento' },
           {
             type: 'note',
-            text: 'Ibinabalik ng namumuno ang Banal na Sakramento sa tabernakulo at yumuyukod habang inaawit ang "O Sakramentong Kabanal-banalan" o iba pang angkop na awit Eukaristiko. Pagkatapos ay lalabas ang lahat ng ministro sa santuwaryo.',
+            text: 'Ibinabalik ng namumuno ang Banal na Sakramento sa tabernakulo at yumuyukod habang inaawit ang “O Sakramentong Kabanal-banalan” o iba pang angkop na awit Eukaristiko. Pagkatapos ay lalabas ang lahat ng ministro sa santuwaryo.',
           },
           { type: 'label', text: 'O Sakramentong Kabanal-banalan' },
           {

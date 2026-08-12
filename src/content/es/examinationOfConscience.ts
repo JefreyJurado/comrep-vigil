@@ -98,7 +98,7 @@ export const examinationOfConscience_es: ExaminationSection[] = [
       '¿Has faltado a Misa en un día de precepto, como la Navidad o la Solemnidad de María, Madre de Dios?',
       '¿Ha pasado más de un año desde tu última confesión?',
       '¿Has evitado o retrasado la confesión por vergüenza o miedo, en lugar de confiar en la misericordia de Dios?',
-      '¿Has descuidado recibir la Sagrada Comunión durante el tiempo pascual (tu "precepto pascual")?',
+      '¿Has descuidado recibir la Sagrada Comunión durante el tiempo pascual (tu “precepto pascual”)?',
       '¿Has recibido la Comunión sabiendo que tenías un pecado mortal sin confesar?',
       '¿Has dejado de observar los días de ayuno y abstinencia de la Iglesia, como el Miércoles de Ceniza y el Viernes Santo, o has comido carne los viernes de Cuaresma sin una razón válida?',
       '¿Has descuidado apoyar a tu parroquia o a la Iglesia con tu tiempo, talento o recursos, según tus posibilidades?',
